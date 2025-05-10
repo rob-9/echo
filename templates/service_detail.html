@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+
+{% block title %}{{ service.title }} - FiverrClone{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto">
+    <!-- Breadcrumb -->
+    <nav class="mb-8">
+        <ol class="flex items-center space-x-2 text-sm text-gray-400">
+            <li><a href="{{ url_for('home') }}" class="hover:text-gray-300">Home</a></li>
+            <li>/</li>
+            <li><a href="{{ url_for('services') }}" class="hover:text-gray-300">Services</a></li>
+            <li>/</li>
+            <li class="text-gray-300">{{ service.title }}</li>
+        </ol>
+    </nav>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <!-- Main Content -->
+        <div class="lg:col-span-2">
+            <div class="bg-gray-800 rounded-lg shadow-sm p-6 mb-8 border border-gray-700">
+                <h1 class="text-3xl font-bold mb-4 text-gray-100">{{ service.title }}</h1>
+                <div class="flex items-center space-x-4 mb-6">
+                    <div class="flex items-center">
+                        <i class="fas fa-star text-yellow-400"></i>
+                        <span class="ml-1 text-gray-400">4.9 (120 reviews)</span>
+                    </div>
+                    <div class="flex items-center">
+                        <i class="fas fa-shopping-cart text-gray-400"></i>
+                        <span class="ml-1 text-gray-400">1,234 orders</span>
+                    </div>
+                </div>
+                <div class="prose max-w-none">
+                    <p class="text-gray-400 mb-6">{{ service.description }}</p>
+                </div>
+            </div>
+
+            <!-- Service Features -->
+            <div class="bg-gray-800 rounded-lg shadow-sm p-6 mb-8 border border-gray-700">
+                <h2 class="text-xl font-bold mb-4 text-gray-100">What's Included</h2>
+                <ul class="space-y-3">
+                    <li class="flex items-start">
+                        <i class="fas fa-check text-indigo-400 mt-1 mr-3"></i>
+                        <span class="text-gray-300">High-quality deliverables</span>
+                    </li>
+                    <li class="flex items-start">
+                        <i class="fas fa-check text-indigo-400 mt-1 mr-3"></i>
+                        <span class="text-gray-300">Unlimited revisions</span>
+                    </li>
+                    <li class="flex items-start">
+                        <i class="fas fa-check text-indigo-400 mt-1 mr-3"></i>
+                        <span class="text-gray-300">Fast delivery</span>
+                    </li>
+                    <li class="flex items-start">
+                        <i class="fas fa-check text-indigo-400 mt-1 mr-3"></i>
+                        <span class="text-gray-300">24/7 support</span>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Reviews Section -->
+            <div class="bg-gray-800 rounded-lg shadow-sm p-6 border border-gray-700">
+                <h2 class="text-xl font-bold mb-6 text-gray-100">Reviews</h2>
+                <div class="space-y-6">
+                    <!-- Sample Review -->
+                    <div class="border-b border-gray-700 pb-6">
+                        <div class="flex items-center mb-4">
+                            <div class="w-10 h-10 bg-gray-700 rounded-full mr-4"></div>
+                            <div>
+                                <h3 class="font-semibold text-gray-100">John Doe</h3>
+                                <div class="flex items-center">
+                                    <i class="fas fa-star text-yellow-400"></i>
+                                    <i class="fas fa-star text-yellow-400"></i>
+                                    <i class="fas fa-star text-yellow-400"></i>
+                                    <i class="fas fa-star text-yellow-400"></i>
+                                    <i class="fas fa-star text-yellow-400"></i>
+                                    <span class="ml-2 text-sm text-gray-400">2 days ago</span>
+                                </div>
+                            </div>
+                        </div>
+                        <p class="text-gray-400">Excellent service! The seller was very professional and delivered exactly what I needed.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="lg:col-span-1">
+            <!-- Order Box -->
+            <div class="bg-gray-800 rounded-lg shadow-sm p-6 mb-8 sticky top-8 border border-gray-700">
+                <div class="flex justify-between items-center mb-6">
+                    <span class="text-3xl font-bold text-indigo-400">${{ "%.2f"|format(service.price) }}</span>
+                    <span class="text-gray-400">Starting at</span>
+                </div>
+                <button class="w-full bg-indigo-600 text-white py-3 px-4 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-gray-800 transition duration-300 mb-4">
+                    Order Now
+                </button>
+                <button class="w-full border border-gray-600 text-gray-300 py-3 px-4 rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-gray-800 transition duration-300">
+                    Contact Seller
+                </button>
+            </div>
+
+            <!-- Seller Info -->
+            <div class="bg-gray-800 rounded-lg shadow-sm p-6 border border-gray-700">
+                <div class="flex items-center mb-6">
+                    <div class="w-16 h-16 bg-gray-700 rounded-full mr-4"></div>
+                    <div>
+                        <h3 class="font-semibold text-gray-100">{{ service.seller.username }}</h3>
+                        <div class="flex items-center text-sm text-gray-400">
+                            <i class="fas fa-star text-yellow-400"></i>
+                            <span class="ml-1">4.9 (120 reviews)</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="space-y-4">
+                    <div class="flex justify-between">
+                        <span class="text-gray-400">Response Time</span>
+                        <span class="font-medium text-gray-300">1 hour</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-400">Delivery Time</span>
+                        <span class="font-medium text-gray-300">2 days</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-400">Order Completion</span>
+                        <span class="font-medium text-gray-300">100%</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

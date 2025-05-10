@@ -1,0 +1,27 @@
+.category-card {
+    position: relative;
+    overflow: hidden;
+    border: 2px solid transparent;
+    transition: all 0.3s ease;
+}
+
+.category-card:hover {
+    border-color: var(--gradient-color);
+    transform: translateY(-2px);
+}
+
+.category-card[data-gradient="blue"] {
+    --gradient-color: #3B82F6;
+}
+
+.category-card[data-gradient="purple"] {
+    --gradient-color: #8B5CF6;
+}
+
+.category-card[data-gradient="cyan"] {
+    --gradient-color: #06B6D4;
+}
+
+.category-card[data-gradient="indigo"] {
+    --gradient-color: #6366F1;
+} 
