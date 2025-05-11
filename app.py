@@ -29,17 +29,13 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///echo.db'
 app.config['UPLOAD_FOLDER'] = 'static/uploads'
 
 # Get API key from environment variable
-app.config['GEMINI_API_KEY'] = os.getenv('GEMINI_API_KEY')
-if not app.config['GEMINI_API_KEY']:
+if False:
     logger.error("GEMINI_API_KEY environment variable is not set")
     ai_briefing = None
 else:
     try:
-        # Log API key length for debugging (don't log the actual key)
-        api_key = app.config['GEMINI_API_KEY']
-        logger.info(f"Found API key with length: {len(api_key)}")
-        
-        ai_briefing = AIBriefingSystem(api_key)
+        print("here")
+        ai_briefing = AIBriefingSystem()
         logger.info("AI briefing system initialized successfully")
     except Exception as e:
         logger.error(f"Failed to initialize AI briefing system: {str(e)}", exc_info=True)
@@ -248,12 +244,38 @@ def get_next_question():
             return jsonify({"error": "Service title must be set before starting the briefing"}), 400
         
         try:
+            # Get next question from AI
             question = ai_briefing.get_next_question(user_input)
+            
+            # Generate image based on accumulated requirements if user provided input
+            image_url = None
+            if user_input:
+                # Extract all user inputs from history to create a comprehensive image prompt
+                requirements = ""
+                for msg in ai_briefing.history:
+                    if msg.get("role") == "user":
+                        for content in msg.get("content", []):
+                            if "text" in content:
+                                requirements += content["text"] + " "
+                
+                # Generate image based on all requirements so far
+                image_urls = ai_briefing.generate_images(requirements)
+                if image_urls and len(image_urls) > 0:
+                    image_url = image_urls[0]
+                    # Convert to web-friendly path
+                    if image_url.startswith("generated_images/"):
+                        image_url = "/" + image_url
+            
+            response_data = {"question": question}
+            if image_url:
+                response_data["image_url"] = image_url
+            
             if not question:
                 logger.error("No question generated from AI model")
-                return jsonify({"question": "Could you tell me more about your project requirements?"}), 200
+                response_data["question"] = "Could you tell me more about your project requirements?"
                 
-            return jsonify({"question": question})
+            return jsonify(response_data)
+            
         except Exception as e:
             logger.error(f"Error generating question: {str(e)}", exc_info=True)
             return jsonify({"question": "What are your key requirements for this project?"}), 200
@@ -280,7 +302,16 @@ def generate_images():
             return jsonify({"error": "Requirements are needed to generate images"}), 400
             
         image_urls = ai_briefing.generate_images(requirements)
-        return jsonify({'image_urls': image_urls})
+        
+        # Convert to web-friendly paths
+        web_urls = []
+        for url in image_urls:
+            if url.startswith("generated_images/"):
+                web_urls.append("/" + url)
+            else:
+                web_urls.append(url)
+                
+        return jsonify({'image_urls': web_urls})
     except Exception as e:
         logger.error(f"Error generating images: {str(e)}", exc_info=True)
         return jsonify({"error": f"Error generating images: {str(e)}"}), 500
@@ -303,9 +334,26 @@ def process_feedback():
         if not image_url or not feedback:
             logger.error("Missing image_url or feedback in request")
             return jsonify({"error": "Both image_url and feedback are required"}), 400
+        
+        # Convert from web path to file system path if needed
+        if image_url.startswith('/generated_images/'):
+            image_url = image_url[1:]  # Remove leading slash
             
         response = ai_briefing.get_feedback(image_url, feedback)
-        return jsonify({'response': response})
+        
+        # Generate a new image based on feedback
+        requirements = ai_briefing.history[-1].get("content", [{}])[0].get("text", "") + " " + feedback
+        new_image_urls = ai_briefing.generate_images(requirements)
+        new_image_url = None
+        if new_image_urls and len(new_image_urls) > 0:
+            new_image_url = new_image_urls[0]
+            if new_image_url.startswith("generated_images/"):
+                new_image_url = "/" + new_image_url
+                
+        return jsonify({
+            'response': response,
+            'new_image_url': new_image_url
+        })
     except Exception as e:
         logger.error(f"Error processing feedback: {str(e)}", exc_info=True)
         return jsonify({"error": f"Error processing feedback: {str(e)}"}), 500
@@ -341,8 +389,20 @@ def set_service_title():
             if not test_question:
                 logger.error("Failed to get initial question after setting service title")
                 return jsonify({"error": "Unable to initialize the AI briefing with this title"}), 500
-                
-            return jsonify({"success": True, "first_question": test_question})
+            
+            # Generate an initial concept image
+            initial_image_urls = ai_briefing.generate_images(f"A concept image for {title}")
+            initial_image_url = None
+            if initial_image_urls and len(initial_image_urls) > 0:
+                initial_image_url = initial_image_urls[0]
+                if initial_image_url.startswith("generated_images/"):
+                    initial_image_url = "/" + initial_image_url
+            
+            return jsonify({
+                "success": True, 
+                "first_question": test_question,
+                "initial_image_url": initial_image_url
+            })
         except Exception as e:
             logger.error(f"Error setting service title: {str(e)}", exc_info=True)
             return jsonify({"error": f"Error setting service title: {str(e)}"}), 500
@@ -350,6 +410,69 @@ def set_service_title():
     except Exception as e:
         logger.error(f"Error in set-service-title endpoint: {str(e)}", exc_info=True)
         return jsonify({"error": f"Server error: {str(e)}"}), 500
+
+@app.route('/api/briefing/summarize', methods=['GET'])
+@login_required
+def summarize_briefing():
+    """Generate a summary of the briefing conversation and requirements so far"""
+    if not ai_briefing:
+        logger.error("AI briefing system is not available")
+        return jsonify({"error": "AI briefing system is not available"}), 503
+    
+    try:
+        # Extract all conversations to create a summary
+        conversation_text = ""
+        for msg in ai_briefing.history:
+            role = msg.get("role", "")
+            for content in msg.get("content", []):
+                if "text" in content:
+                    conversation_text += f"{role.upper()}: {content['text']}\n\n"
+        
+        # Create prompt for summary
+        summary_prompt = f"Based on our conversation about the {ai_briefing.service_title} project, please provide:\n\n1. A summary of key requirements\n2. The main goals of the project\n3. Style preferences and visual elements\n\nKeep your response concise and well-structured."
+        
+        # Create request for summary
+        summary_request = {
+            "messages": ai_briefing.history + [{
+                "role": "user",
+                "content": [{"text": summary_prompt}]
+            }],
+            "inferenceConfig": {
+                "temperature": 0.3,
+                "maxTokens": 1024
+            }
+        }
+        
+        # Get summary from model
+        response = ai_briefing.bedrock.converse(
+            modelId=ai_briefing.model_id,
+            messages=summary_request["messages"],
+            inferenceConfig=summary_request["inferenceConfig"]
+        )
+        
+        content_blocks = response["output"]["message"]["content"]
+        summary = ""
+        for block in content_blocks:
+            if "text" in block:
+                summary = block["text"].strip()
+                break
+        
+        # Generate a final concept image
+        final_image_urls = ai_briefing.generate_images(f"A finalized concept image for {ai_briefing.service_title} based on: {summary}")
+        final_image_url = None
+        if final_image_urls and len(final_image_urls) > 0:
+            final_image_url = final_image_urls[0]
+            if final_image_url.startswith("generated_images/"):
+                final_image_url = "/" + final_image_url
+        
+        return jsonify({
+            "summary": summary,
+            "final_image_url": final_image_url
+        })
+        
+    except Exception as e:
+        logger.error(f"Error generating summary: {str(e)}", exc_info=True)
+        return jsonify({"error": f"Error generating summary: {str(e)}"}), 500
 
 @app.route('/api/contact-seller/<int:service_id>', methods=['POST'])
 @login_required
@@ -540,7 +663,15 @@ def create_test_services():
     db.session.add_all(services)
     db.session.commit()
 
+# Add a route to serve generated images
+@app.route('/generated_images/<path:filename>')
+def generated_image(filename):
+    return send_from_directory('generated_images', filename)
+
 if __name__ == '__main__':
+    # Create generated_images directory if it doesn't exist
+    os.makedirs('generated_images', exist_ok=True)
+    
     with app.app_context():
         db.create_all()
     app.run(debug=True)
