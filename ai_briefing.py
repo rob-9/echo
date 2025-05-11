@@ -10,7 +10,7 @@ class AIBriefingSystem:
     def __init__(self, api_key: str):
         if not api_key:
             raise ValueError("Gemini API key is required")
-        genai.configure(api_key='AIzaSyAMgX9jDnSvVwcx23h77VfdyfaZS8tb-t0')
+        genai.configure(api_key = os.environ.get("GEMINI_API_KEY"))
         
         # Create models with proper configuration
         self.model = genai.GenerativeModel('gemini-1.5-flash')
