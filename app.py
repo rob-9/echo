@@ -1,6 +1,6 @@
 from dotenv import load_dotenv
 load_dotenv()
-from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
+from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, send_from_directory
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from flask_migrate import Migrate
@@ -236,7 +236,7 @@ def get_next_question():
         else:
             data = request.get_json() or {}
             
-        user_input = data.get('user_input')
+        user_input = data.get('message')  # Updated to match the new frontend
         logger.debug(f"Received user input: {user_input}")
         
         if not ai_briefing.service_title:
@@ -248,7 +248,7 @@ def get_next_question():
             question = ai_briefing.get_next_question(user_input)
             
             # Generate image based on accumulated requirements if user provided input
-            image_url = None
+            image_urls = []
             if user_input:
                 # Extract all user inputs from history to create a comprehensive image prompt
                 requirements = ""
@@ -259,30 +259,36 @@ def get_next_question():
                                 requirements += content["text"] + " "
                 
                 # Generate image based on all requirements so far
-                image_urls = ai_briefing.generate_images(requirements)
-                if image_urls and len(image_urls) > 0:
-                    image_url = image_urls[0]
-                    # Convert to web-friendly path
-                    if image_url.startswith("generated_images/"):
-                        image_url = "/" + image_url
+                generated_urls = ai_briefing.generate_images(requirements)
+                if generated_urls:
+                    # Convert to web-friendly paths
+                    for url in generated_urls:
+                        if url.startswith("generated_images/"):
+                            image_urls.append("/" + url)
+                        else:
+                            image_urls.append(url)
             
-            response_data = {"question": question}
-            if image_url:
-                response_data["image_url"] = image_url
+            response_data = {
+                "success": True,
+                "message": question or "Could you tell me more about your project requirements?",
+                "images": image_urls
+            }
             
-            if not question:
-                logger.error("No question generated from AI model")
-                response_data["question"] = "Could you tell me more about your project requirements?"
-                
             return jsonify(response_data)
             
         except Exception as e:
             logger.error(f"Error generating question: {str(e)}", exc_info=True)
-            return jsonify({"question": "What are your key requirements for this project?"}), 200
+            return jsonify({
+                "success": False,
+                "error": f"Error generating question: {str(e)}"
+            }), 500
             
     except Exception as e:
         logger.error(f"Error in next-question endpoint: {str(e)}", exc_info=True)
-        return jsonify({"error": f"Server error: {str(e)}"}), 500
+        return jsonify({
+            "success": False,
+            "error": f"Server error: {str(e)}"
+        }), 500
 
 @app.route('/api/briefing/generate-images', methods=['POST'])
 @login_required
@@ -390,18 +396,9 @@ def set_service_title():
                 logger.error("Failed to get initial question after setting service title")
                 return jsonify({"error": "Unable to initialize the AI briefing with this title"}), 500
             
-            # Generate an initial concept image
-            initial_image_urls = ai_briefing.generate_images(f"A concept image for {title}")
-            initial_image_url = None
-            if initial_image_urls and len(initial_image_urls) > 0:
-                initial_image_url = initial_image_urls[0]
-                if initial_image_url.startswith("generated_images/"):
-                    initial_image_url = "/" + initial_image_url
-            
             return jsonify({
                 "success": True, 
-                "first_question": test_question,
-                "initial_image_url": initial_image_url
+                "first_question": test_question
             })
         except Exception as e:
             logger.error(f"Error setting service title: {str(e)}", exc_info=True)
