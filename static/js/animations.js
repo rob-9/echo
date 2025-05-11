@@ -1,8 +1,8 @@
 // Typing animation configuration
 const config = {
-    text: "Reduce designer-client back-and-forths with smart, streamlined project briefs.",
-    typingSpeed: 25,  // Speed in milliseconds between each character
-    startDelay: 500,  // Delay before starting the animation in milliseconds
+    text: "Reduce designer-client back-and-forths with smart, efficient project briefs.",
+    typingSpeed: 20,  // Speed in milliseconds between each character
+    startDelay: 350,  // Delay before starting the animation in milliseconds
     cursor: "|",      // Cursor character
     cursorSpeed: 500  // Cursor blink speed in milliseconds
 };

@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}{{ service.title }} - FiverrClone{% endblock %}
+{% block title %}{{ service.title }} - echo{% endblock %}
 
 {% block content %}
 <div class="max-w-7xl mx-auto">
@@ -95,9 +95,61 @@
                 <button class="w-full bg-indigo-600 text-white py-3 px-4 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-gray-800 transition duration-300 mb-4">
                     Order Now
                 </button>
-                <button class="w-full border border-gray-600 text-gray-300 py-3 px-4 rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-gray-800 transition duration-300">
-                    Contact Seller
-                </button>
+                <div class="flex space-x-4">
+                    <button id="contactSellerBtn" class="flex-1 border border-gray-600 text-gray-300 py-3 px-4 rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-gray-800 transition duration-300">
+                        Contact Seller
+                    </button>
+                    <button class="bookmark-btn border border-gray-600 text-gray-300 py-3 px-4 rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-gray-800 transition duration-300" data-service-id="{{ service.id }}">
+                        <i class="far fa-bookmark"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Contact Seller Modal -->
+            <div id="contactSellerModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+                <div class="bg-gray-800 rounded-lg p-6 max-w-2xl w-full mx-4">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-xl font-bold text-gray-100">AI-Powered Briefing</h3>
+                        <button id="closeModalBtn" class="text-gray-400 hover:text-gray-300">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div class="space-y-4">
+                        <!-- Conversation History -->
+                        <div id="conversationHistory" class="bg-gray-700 rounded-lg p-4 h-64 overflow-y-auto mb-4">
+                            <!-- Messages will be added here dynamically -->
+                        </div>
+                        
+                        <!-- Current Question -->
+                        <div id="currentQuestion" class="text-gray-300 mb-4">
+                            <!-- Question will be displayed here -->
+                        </div>
+                        
+                        <!-- User Input -->
+                        <div class="flex space-x-2">
+                            <textarea id="userInput" class="flex-1 px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent" rows="2" placeholder="Type your response here..."></textarea>
+                            <button id="sendResponseBtn" class="bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-gray-800 transition duration-300">
+                                Send
+                            </button>
+                        </div>
+                        
+                        <!-- Generated Images Section (initially hidden) -->
+                        <div id="generatedImages" class="hidden space-y-4">
+                            <h4 class="text-lg font-semibold text-gray-100">Generated Images</h4>
+                            <div id="imageGrid" class="grid grid-cols-2 gap-4">
+                                <!-- Images will be added here dynamically -->
+                            </div>
+                            
+                            <!-- Feedback Section -->
+                            <div class="mt-4">
+                                <textarea id="imageFeedback" class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent" rows="3" placeholder="Provide feedback on the generated images..."></textarea>
+                                <button id="submitFeedbackBtn" class="mt-2 bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-gray-800 transition duration-300">
+                                    Submit Feedback
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <!-- Seller Info -->
@@ -130,4 +182,146 @@
         </div>
     </div>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const contactSellerBtn = document.getElementById('contactSellerBtn');
+        const contactSellerModal = document.getElementById('contactSellerModal');
+        const closeModalBtn = document.getElementById('closeModalBtn');
+        const conversationHistory = document.getElementById('conversationHistory');
+        const currentQuestion = document.getElementById('currentQuestion');
+        const userInput = document.getElementById('userInput');
+        const sendResponseBtn = document.getElementById('sendResponseBtn');
+        const generatedImages = document.getElementById('generatedImages');
+        const imageGrid = document.getElementById('imageGrid');
+        const imageFeedback = document.getElementById('imageFeedback');
+        const submitFeedbackBtn = document.getElementById('submitFeedbackBtn');
+
+        // Start the briefing when modal opens
+        contactSellerBtn.addEventListener('click', async () => {
+            contactSellerModal.classList.remove('hidden');
+            contactSellerModal.classList.add('flex');
+            await getNextQuestion();
+        });
+
+        closeModalBtn.addEventListener('click', () => {
+            contactSellerModal.classList.add('hidden');
+            contactSellerModal.classList.remove('flex');
+        });
+
+        // Close modal when clicking outside
+        contactSellerModal.addEventListener('click', (e) => {
+            if (e.target === contactSellerModal) {
+                contactSellerModal.classList.add('hidden');
+                contactSellerModal.classList.remove('flex');
+            }
+        });
+
+        async function getNextQuestion(userInput = null) {
+            try {
+                const response = await fetch('/api/briefing/next-question', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ user_input: userInput }),
+                });
+                const data = await response.json();
+                
+                // Add question to conversation history
+                addMessageToHistory('assistant', data.question);
+                currentQuestion.textContent = data.question;
+            } catch (error) {
+                console.error('Error getting next question:', error);
+            }
+        }
+
+        async function generateImages(requirements) {
+            try {
+                const response = await fetch('/api/briefing/generate-images', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ requirements: requirements }),
+                });
+                const data = await response.json();
+                
+                // Display generated images
+                imageGrid.innerHTML = '';
+                data.image_urls.forEach(url => {
+                    const imgContainer = document.createElement('div');
+                    imgContainer.className = 'relative';
+                    imgContainer.innerHTML = `
+                        <img src="${url}" alt="Generated design" class="w-full h-48 object-cover rounded-lg">
+                        <button class="absolute top-2 right-2 bg-indigo-600 text-white p-2 rounded-full hover:bg-indigo-700">
+                            <i class="fas fa-check"></i>
+                        </button>
+                    `;
+                    imageGrid.appendChild(imgContainer);
+                });
+                
+                generatedImages.classList.remove('hidden');
+            } catch (error) {
+                console.error('Error generating images:', error);
+            }
+        }
+
+        async function submitFeedback(imageUrl, feedback) {
+            try {
+                const response = await fetch('/api/briefing/feedback', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ image_url: imageUrl, feedback: feedback }),
+                });
+                const data = await response.json();
+                
+                // Add feedback response to conversation history
+                addMessageToHistory('assistant', data.response);
+            } catch (error) {
+                console.error('Error submitting feedback:', error);
+            }
+        }
+
+        function addMessageToHistory(role, content) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `mb-4 ${role === 'user' ? 'text-right' : 'text-left'}`;
+            messageDiv.innerHTML = `
+                <div class="inline-block ${role === 'user' ? 'bg-indigo-600' : 'bg-gray-600'} text-white rounded-lg px-4 py-2 max-w-[80%]">
+                    ${content}
+                </div>
+            `;
+            conversationHistory.appendChild(messageDiv);
+            conversationHistory.scrollTop = conversationHistory.scrollHeight;
+        }
+
+        // Event Listeners
+        sendResponseBtn.addEventListener('click', async () => {
+            const response = userInput.value.trim();
+            if (response) {
+                addMessageToHistory('user', response);
+                userInput.value = '';
+                await getNextQuestion(response);
+            }
+        });
+
+        userInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendResponseBtn.click();
+            }
+        });
+
+        submitFeedbackBtn.addEventListener('click', () => {
+            const feedback = imageFeedback.value.trim();
+            if (feedback) {
+                const selectedImage = document.querySelector('.fa-check').closest('.relative').querySelector('img').src;
+                submitFeedback(selectedImage, feedback);
+                imageFeedback.value = '';
+            }
+        });
+    });
+</script>
 {% endblock %} 

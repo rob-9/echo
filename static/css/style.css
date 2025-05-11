@@ -133,4 +133,30 @@
 /* Mode transition */
 * {
     transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+}
+
+/* Default avatar style */
+.default-avatar {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 9999px;
+  background: linear-gradient(135deg, #3b82f6 60%, #8b5cf6 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.default-avatar svg {
+  width: 1.5rem;
+  height: 1.5rem;
+  fill: #fff;
+  display: block;
+}
+
+/* Remove focus border for mouse users, keep for keyboard navigation */
+button:focus:not(:focus-visible),
+a:focus:not(:focus-visible) {
+  outline: none !important;
+  box-shadow: none !important;
 } 

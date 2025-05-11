@@ -1,15 +1,20 @@
-from flask import Flask, render_template, request, redirect, url_for, flash
+from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from flask_migrate import Migrate
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime
 import os
+from ai_briefing import AIBriefingSystem
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.urandom(24)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///fiverr_clone.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///echo.db'
 app.config['UPLOAD_FOLDER'] = 'static/uploads'
+app.config['GEMINI_API_KEY'] = os.getenv('GEMINI_API_KEY')  # Get API key from environment variable
+
+# Initialize AI Briefing System
+ai_briefing = AIBriefingSystem(app.config['GEMINI_API_KEY'])
 
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
@@ -35,6 +40,14 @@ class Service(db.Model):
     category = db.Column(db.String(50), nullable=False)
     seller_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    bookmarked_by = db.relationship('Bookmark', backref='service', lazy=True)
+
+class Bookmark(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    service_id = db.Column(db.Integer, db.ForeignKey('service.id'), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    user = db.relationship('User', backref='bookmarks')
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -52,12 +65,41 @@ def services():
     if Service.query.count() == 0:
         create_test_services()
     
+    # Get filter parameters
     category = request.args.get('category')
+    min_price = request.args.get('min_price', type=float)
+    max_price = request.args.get('max_price', type=float)
+    sort = request.args.get('sort', 'newest')
+
+    # Start with base query
+    query = Service.query
+
+    # Apply filters
     if category:
-        services = Service.query.filter_by(category=category).all()
-    else:
-        services = Service.query.all()
-    return render_template('services.html', services=services, selected_category=category)
+        query = query.filter_by(category=category)
+    if min_price is not None:
+        query = query.filter(Service.price >= min_price)
+    if max_price is not None:
+        query = query.filter(Service.price <= max_price)
+
+    # Apply sorting
+    if sort == 'price-low':
+        query = query.order_by(Service.price.asc())
+    elif sort == 'price-high':
+        query = query.order_by(Service.price.desc())
+    elif sort == 'rating':
+        # TODO: Implement rating sorting when rating system is added
+        query = query.order_by(Service.created_at.desc())
+    else:  # newest
+        query = query.order_by(Service.created_at.desc())
+
+    services = query.all()
+    return render_template('services.html', 
+                         services=services, 
+                         selected_category=category,
+                         selected_min_price=min_price,
+                         selected_max_price=max_price,
+                         selected_sort=sort)
 
 @app.route('/service/<int:service_id>')
 def service_detail(service_id):
@@ -107,6 +149,57 @@ def login():
 def logout():
     logout_user()
     return redirect(url_for('home'))
+
+@app.route('/dashboard')
+@login_required
+def dashboard():
+    if current_user.is_seller:
+        # Get seller's services
+        services = Service.query.filter_by(seller_id=current_user.id).all()
+        return render_template('dashboard.html', services=services)
+    else:
+        # For buyers, show their bookmarked services
+        bookmarked_services = Service.query.join(Bookmark).filter(Bookmark.user_id == current_user.id).all()
+        return render_template('dashboard.html', bookmarked_services=bookmarked_services)
+
+@app.route('/bookmark/<int:service_id>', methods=['POST'])
+@login_required
+def toggle_bookmark(service_id):
+    service = Service.query.get_or_404(service_id)
+    bookmark = Bookmark.query.filter_by(user_id=current_user.id, service_id=service_id).first()
+    
+    if bookmark:
+        db.session.delete(bookmark)
+        bookmarked = False
+    else:
+        bookmark = Bookmark(user_id=current_user.id, service_id=service_id)
+        db.session.add(bookmark)
+        bookmarked = True
+    
+    db.session.commit()
+    return jsonify({'bookmarked': bookmarked})
+
+@app.route('/api/briefing/next-question', methods=['POST'])
+@login_required
+def get_next_question():
+    user_input = request.json.get('user_input')
+    question = ai_briefing.get_next_question(user_input)
+    return jsonify({'question': question})
+
+@app.route('/api/briefing/generate-images', methods=['POST'])
+@login_required
+def generate_images():
+    requirements = request.json.get('requirements')
+    image_urls = ai_briefing.generate_images(requirements)
+    return jsonify({'image_urls': image_urls})
+
+@app.route('/api/briefing/feedback', methods=['POST'])
+@login_required
+def process_feedback():
+    image_url = request.json.get('image_url')
+    feedback = request.json.get('feedback')
+    response = ai_briefing.get_feedback(image_url, feedback)
+    return jsonify({'response': response})
 
 def create_test_services():
     # Create a test seller
