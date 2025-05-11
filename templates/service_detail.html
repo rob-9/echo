@@ -99,52 +99,46 @@
                     <button id="contactSellerBtn" class="flex-1 border border-gray-600 text-gray-300 py-3 px-4 rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-gray-800 transition duration-300">
                         Contact Seller
                     </button>
-                    <button class="bookmark-btn border border-gray-600 text-gray-300 py-3 px-4 rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-gray-800 transition duration-300" data-service-id="{{ service.id }}">
-                        <i class="far fa-bookmark"></i>
+                    <button class="bookmark-btn border border-gray-600 text-gray-300 py-3 px-4 rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-gray-800 transition duration-300 {% if service.id in bookmarked_service_ids %}text-indigo-400 border-indigo-500{% endif %}" data-service-id="{{ service.id }}">
+                        <i class="{% if service.id in bookmarked_service_ids %}fas{% else %}far{% endif %} fa-bookmark"></i>
                     </button>
                 </div>
             </div>
 
             <!-- Contact Seller Modal -->
-            <div id="contactSellerModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
-                <div class="bg-gray-800 rounded-lg p-6 max-w-2xl w-full mx-4">
-                    <div class="flex justify-between items-center mb-4">
-                        <h3 class="text-xl font-bold text-gray-100">AI-Powered Briefing</h3>
-                        <button id="closeModalBtn" class="text-gray-400 hover:text-gray-300">
-                            <i class="fas fa-times"></i>
+            <div id="contactSellerModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden items-center justify-center z-50">
+                <div class="bg-gray-800/95 rounded-xl p-8 max-w-5xl w-full mx-4 transform transition-all duration-300 ease-out scale-95 opacity-0 shadow-2xl border border-gray-700/50" id="modalContent">
+                    <div class="flex justify-between items-center mb-6 border-b border-gray-700/50 pb-4">
+                        <div>
+                            <h3 class="text-2xl font-bold text-gray-100 flex items-center gap-2">
+                                <i class="fas fa-comments text-indigo-400"></i>
+                                Contact {{ service.seller.username }}
+                            </h3>
+                            <p class="text-sm text-gray-400 mt-1 flex items-center gap-2">
+                                <i class="fas fa-tag text-indigo-400/70"></i>
+                                About: {{ service.title }}
+                            </p>
+                        </div>
+                        <button id="closeModalBtn" class="text-gray-400 hover:text-gray-300 transition-colors p-2 hover:bg-gray-700/50 rounded-lg">
+                            <i class="fas fa-times text-xl"></i>
                         </button>
                     </div>
                     <div class="space-y-4">
-                        <!-- Conversation History -->
-                        <div id="conversationHistory" class="bg-gray-700 rounded-lg p-4 h-64 overflow-y-auto mb-4">
+                        <!-- Chat Messages -->
+                        <div id="chat-messages" class="bg-gray-700/30 backdrop-blur-sm rounded-xl p-6 h-[400px] overflow-y-auto mb-4 space-y-4 scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-transparent">
                             <!-- Messages will be added here dynamically -->
                         </div>
                         
-                        <!-- Current Question -->
-                        <div id="currentQuestion" class="text-gray-300 mb-4">
-                            <!-- Question will be displayed here -->
-                        </div>
-                        
                         <!-- User Input -->
-                        <div class="flex space-x-2">
-                            <textarea id="userInput" class="flex-1 px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent" rows="2" placeholder="Type your response here..."></textarea>
-                            <button id="sendResponseBtn" class="bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-gray-800 transition duration-300">
-                                Send
-                            </button>
-                        </div>
-                        
-                        <!-- Generated Images Section (initially hidden) -->
-                        <div id="generatedImages" class="hidden space-y-4">
-                            <h4 class="text-lg font-semibold text-gray-100">Generated Images</h4>
-                            <div id="imageGrid" class="grid grid-cols-2 gap-4">
-                                <!-- Images will be added here dynamically -->
-                            </div>
-                            
-                            <!-- Feedback Section -->
-                            <div class="mt-4">
-                                <textarea id="imageFeedback" class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent" rows="3" placeholder="Provide feedback on the generated images..."></textarea>
-                                <button id="submitFeedbackBtn" class="mt-2 bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-gray-800 transition duration-300">
-                                    Submit Feedback
+                        <div class="flex flex-col space-y-3">
+                            <textarea id="message-input" class="w-full px-4 py-3 bg-gray-700/30 backdrop-blur-sm border border-gray-600/50 rounded-xl text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none transition-all duration-200 placeholder-gray-500" rows="3" placeholder="Type your message here..."></textarea>
+                            <div class="flex justify-between items-center">
+                                <div class="text-sm text-gray-400">
+                                    Press Enter to send, Shift + Enter for new line
+                                </div>
+                                <button id="sendResponseBtn" class="bg-indigo-600 text-white py-2.5 px-6 rounded-xl hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-gray-800 transition-all duration-300 flex items-center space-x-2 shadow-lg shadow-indigo-500/20">
+                                    <span>Send Message</span>
+                                    <i class="fas fa-paper-plane text-sm"></i>
                                 </button>
                             </div>
                         </div>
@@ -183,58 +177,304 @@
     </div>
 </div>
 
+<style>
+    @keyframes slideIn {
+        from {
+            transform: translateY(20px);
+            opacity: 0;
+        }
+        to {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+        }
+        to {
+            opacity: 1;
+        }
+    }
+
+    .message-enter {
+        animation: slideIn 0.3s ease-out forwards;
+    }
+
+    .modal-enter {
+        animation: fadeIn 0.3s ease-out forwards;
+    }
+
+    .typing-indicator {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        padding: 8px 12px;
+        background: rgba(99, 102, 241, 0.1);
+        border-radius: 12px;
+        width: fit-content;
+        backdrop-filter: blur(4px);
+    }
+
+    .typing-indicator span {
+        width: 8px;
+        height: 8px;
+        background: #6366f1;
+        border-radius: 50%;
+        animation: typing 1s infinite ease-in-out;
+    }
+
+    .typing-indicator span:nth-child(2) {
+        animation-delay: 0.2s;
+    }
+
+    .typing-indicator span:nth-child(3) {
+        animation-delay: 0.4s;
+    }
+
+    @keyframes typing {
+        0%, 100% {
+            transform: translateY(0);
+        }
+        50% {
+            transform: translateY(-4px);
+        }
+    }
+
+    /* Custom scrollbar styles */
+    .scrollbar-thin::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .scrollbar-thin::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    .scrollbar-thin::-webkit-scrollbar-thumb {
+        background-color: rgba(75, 85, 99, 0.5);
+        border-radius: 3px;
+    }
+
+    .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+        background-color: rgba(75, 85, 99, 0.7);
+    }
+</style>
+
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         const contactSellerBtn = document.getElementById('contactSellerBtn');
         const contactSellerModal = document.getElementById('contactSellerModal');
+        const modalContent = document.getElementById('modalContent');
         const closeModalBtn = document.getElementById('closeModalBtn');
-        const conversationHistory = document.getElementById('conversationHistory');
-        const currentQuestion = document.getElementById('currentQuestion');
-        const userInput = document.getElementById('userInput');
+        const chatMessages = document.getElementById('chat-messages');
+        const messageInput = document.getElementById('message-input');
         const sendResponseBtn = document.getElementById('sendResponseBtn');
         const generatedImages = document.getElementById('generatedImages');
         const imageGrid = document.getElementById('imageGrid');
         const imageFeedback = document.getElementById('imageFeedback');
         const submitFeedbackBtn = document.getElementById('submitFeedbackBtn');
 
-        // Start the briefing when modal opens
+        // Open modal with animation
         contactSellerBtn.addEventListener('click', async () => {
-            contactSellerModal.classList.remove('hidden');
-            contactSellerModal.classList.add('flex');
-            await getNextQuestion();
-        });
-
-        closeModalBtn.addEventListener('click', () => {
-            contactSellerModal.classList.add('hidden');
-            contactSellerModal.classList.remove('flex');
-        });
-
-        // Close modal when clicking outside
-        contactSellerModal.addEventListener('click', (e) => {
-            if (e.target === contactSellerModal) {
-                contactSellerModal.classList.add('hidden');
-                contactSellerModal.classList.remove('flex');
+            try {
+                contactSellerModal.classList.remove('hidden');
+                contactSellerModal.classList.add('flex');
+                // Trigger animation
+                requestAnimationFrame(() => {
+                    modalContent.classList.remove('scale-95', 'opacity-0');
+                    modalContent.classList.add('scale-100', 'opacity-100');
+                });
+                await startBriefing();
+            } catch (error) {
+                console.error('Error starting briefing:', error);
+                addMessageToChat('error', 'Sorry, there was an error starting the briefing. Please try again.');
             }
         });
 
-        async function getNextQuestion(userInput = null) {
+        // Close modal with animation
+        function closeModal() {
+            modalContent.classList.remove('scale-100', 'opacity-100');
+            modalContent.classList.add('scale-95', 'opacity-0');
+            setTimeout(() => {
+                contactSellerModal.classList.add('hidden');
+                contactSellerModal.classList.remove('flex');
+                chatMessages.innerHTML = '';
+            }, 300);
+        }
+
+        closeModalBtn.addEventListener('click', closeModal);
+        contactSellerModal.addEventListener('click', (e) => {
+            if (e.target === contactSellerModal) {
+                closeModal();
+            }
+        });
+
+        async function startBriefing() {
+            try {
+                // Set the service title first
+                const setTitleResponse = await fetch('/api/briefing/set-service-title', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        title: '{{ service.title }}'
+                    })
+                });
+
+                if (setTitleResponse.status === 401) {
+                    window.location.href = '/login';
+                    return;
+                }
+
+                let errorData;
+                try {
+                    errorData = await setTitleResponse.json();
+                } catch (e) {
+                    throw new Error('Server returned invalid response');
+                }
+
+                if (!setTitleResponse.ok) {
+                    throw new Error(errorData.error || 'Failed to set service title');
+                }
+
+                // Get the first question
+                const response = await fetch('/api/briefing/next-question', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({})
+                });
+
+                if (response.status === 401) {
+                    window.location.href = '/login';
+                    return;
+                }
+
+                try {
+                    errorData = await response.json();
+                } catch (e) {
+                    throw new Error('Server returned invalid response');
+                }
+
+                if (!response.ok) {
+                    throw new Error(errorData.error || 'Failed to get next question');
+                }
+
+                addMessageToChat('assistant', errorData.question);
+            } catch (error) {
+                console.error('Error starting briefing:', error);
+                addMessageToChat('error', `Error: ${error.message || 'Sorry, there was an error starting the briefing. Please try again.'}`);
+            }
+        }
+
+        function addMessageToChat(role, content) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `flex ${role === 'user' ? 'justify-end' : 'justify-start'} message-enter`;
+            
+            const messageBubble = document.createElement('div');
+            messageBubble.className = `max-w-[80%] rounded-xl px-4 py-2.5 ${
+                role === 'error' 
+                    ? 'bg-red-500/20 text-red-400 border border-red-500/30' 
+                    : role === 'assistant' 
+                        ? 'bg-indigo-500/20 text-indigo-400 border border-indigo-500/30' 
+                        : 'bg-gray-600/80 text-gray-100 border border-gray-500/30'
+            } backdrop-blur-sm`;
+            
+            messageBubble.textContent = content;
+            messageDiv.appendChild(messageBubble);
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function addTypingIndicator() {
+            const indicator = document.createElement('div');
+            indicator.className = 'typing-indicator message-enter';
+            indicator.innerHTML = '<span></span><span></span><span></span>';
+            chatMessages.appendChild(indicator);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+            return indicator;
+        }
+
+        async function sendMessage() {
+            const message = messageInput.value.trim();
+            if (!message) return;
+            
+            // Add user message to chat
+            addMessageToChat('user', message);
+            messageInput.value = '';
+            
+            // Add typing indicator
+            const typingIndicator = addTypingIndicator();
+            
             try {
                 const response = await fetch('/api/briefing/next-question', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
+                        'Accept': 'application/json'
                     },
-                    body: JSON.stringify({ user_input: userInput }),
+                    body: JSON.stringify({
+                        user_input: message
+                    })
                 });
-                const data = await response.json();
-                
-                // Add question to conversation history
-                addMessageToHistory('assistant', data.question);
-                currentQuestion.textContent = data.question;
+
+                // Remove typing indicator
+                typingIndicator.remove();
+
+                if (response.status === 401) {
+                    window.location.href = '/login';
+                    return;
+                }
+
+                let errorData;
+                try {
+                    errorData = await response.json();
+                } catch (e) {
+                    throw new Error('Server returned invalid response');
+                }
+
+                if (!response.ok) {
+                    throw new Error(errorData.error || 'Failed to get response');
+                }
+
+                if (!errorData.question) {
+                    throw new Error('No response received from server');
+                }
+
+                // Add AI response to chat with a slight delay for natural feel
+                setTimeout(() => {
+                    addMessageToChat('assistant', errorData.question);
+                }, 500);
             } catch (error) {
-                console.error('Error getting next question:', error);
+                typingIndicator.remove();
+                console.error('Error sending message:', error);
+                addMessageToChat('error', `Error: ${error.message || 'Sorry, there was an error processing your message. Please try again.'}`);
             }
         }
+
+        // Event Listeners
+        sendResponseBtn.addEventListener('click', sendMessage);
+
+        messageInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+
+        // Add focus animation to textarea
+        messageInput.addEventListener('focus', () => {
+            messageInput.classList.add('ring-2', 'ring-indigo-500');
+        });
+
+        messageInput.addEventListener('blur', () => {
+            messageInput.classList.remove('ring-2', 'ring-indigo-500');
+        });
 
         async function generateImages(requirements) {
             try {
@@ -279,40 +519,11 @@
                 const data = await response.json();
                 
                 // Add feedback response to conversation history
-                addMessageToHistory('assistant', data.response);
+                addMessageToChat('assistant', data.response);
             } catch (error) {
                 console.error('Error submitting feedback:', error);
             }
         }
-
-        function addMessageToHistory(role, content) {
-            const messageDiv = document.createElement('div');
-            messageDiv.className = `mb-4 ${role === 'user' ? 'text-right' : 'text-left'}`;
-            messageDiv.innerHTML = `
-                <div class="inline-block ${role === 'user' ? 'bg-indigo-600' : 'bg-gray-600'} text-white rounded-lg px-4 py-2 max-w-[80%]">
-                    ${content}
-                </div>
-            `;
-            conversationHistory.appendChild(messageDiv);
-            conversationHistory.scrollTop = conversationHistory.scrollHeight;
-        }
-
-        // Event Listeners
-        sendResponseBtn.addEventListener('click', async () => {
-            const response = userInput.value.trim();
-            if (response) {
-                addMessageToHistory('user', response);
-                userInput.value = '';
-                await getNextQuestion(response);
-            }
-        });
-
-        userInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                sendResponseBtn.click();
-            }
-        });
 
         submitFeedbackBtn.addEventListener('click', () => {
             const feedback = imageFeedback.value.trim();
@@ -321,6 +532,44 @@
                 submitFeedback(selectedImage, feedback);
                 imageFeedback.value = '';
             }
+        });
+
+        // Bookmark functionality
+        const bookmarkButtons = document.querySelectorAll('.bookmark-btn');
+        
+        bookmarkButtons.forEach(button => {
+            button.addEventListener('click', async function() {
+                const serviceId = this.dataset.serviceId;
+                const icon = this.querySelector('i');
+                
+                try {
+                    const response = await fetch(`/bookmark/${serviceId}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        }
+                    });
+                    
+                    if (response.status === 401) {
+                        window.location.href = '/login';
+                        return;
+                    }
+                    
+                    const data = await response.json();
+                    
+                    if (data.bookmarked) {
+                        this.classList.add('text-indigo-400', 'border-indigo-500');
+                        icon.classList.remove('far');
+                        icon.classList.add('fas');
+                    } else {
+                        this.classList.remove('text-indigo-400', 'border-indigo-500');
+                        icon.classList.remove('fas');
+                        icon.classList.add('far');
+                    }
+                } catch (error) {
+                    console.error('Error toggling bookmark:', error);
+                }
+            });
         });
     });
 </script>

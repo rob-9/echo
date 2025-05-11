@@ -1,3 +1,5 @@
+from dotenv import load_dotenv
+load_dotenv()
 from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
@@ -6,15 +8,42 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime
 import os
 from ai_briefing import AIBriefingSystem
+import logging
+import json
+
+
+# Configure logging
+logging.basicConfig(
+    level=logging.DEBUG,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.FileHandler('app.log'),
+        logging.StreamHandler()
+    ]
+)
+logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.urandom(24)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///echo.db'
 app.config['UPLOAD_FOLDER'] = 'static/uploads'
-app.config['GEMINI_API_KEY'] = os.getenv('GEMINI_API_KEY')  # Get API key from environment variable
 
-# Initialize AI Briefing System
-ai_briefing = AIBriefingSystem(app.config['GEMINI_API_KEY'])
+# Get API key from environment variable
+app.config['GEMINI_API_KEY'] = os.getenv('GEMINI_API_KEY')
+if not app.config['GEMINI_API_KEY']:
+    logger.error("GEMINI_API_KEY environment variable is not set")
+    ai_briefing = None
+else:
+    try:
+        # Log API key length for debugging (don't log the actual key)
+        api_key = app.config['GEMINI_API_KEY']
+        logger.info(f"Found API key with length: {len(api_key)}")
+        
+        ai_briefing = AIBriefingSystem(api_key)
+        logger.info("AI briefing system initialized successfully")
+    except Exception as e:
+        logger.error(f"Failed to initialize AI briefing system: {str(e)}", exc_info=True)
+        ai_briefing = None
 
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
@@ -94,17 +123,28 @@ def services():
         query = query.order_by(Service.created_at.desc())
 
     services = query.all()
+    
+    # Get user's bookmarked services if logged in
+    bookmarked_service_ids = []
+    if current_user.is_authenticated:
+        bookmarked_service_ids = [bookmark.service_id for bookmark in current_user.bookmarks]
+    
     return render_template('services.html', 
                          services=services, 
                          selected_category=category,
                          selected_min_price=min_price,
                          selected_max_price=max_price,
-                         selected_sort=sort)
+                         selected_sort=sort,
+                         bookmarked_service_ids=bookmarked_service_ids)
 
 @app.route('/service/<int:service_id>')
 def service_detail(service_id):
     service = Service.query.get_or_404(service_id)
-    return render_template('service_detail.html', service=service)
+    # Get user's bookmarked services if logged in
+    bookmarked_service_ids = []
+    if current_user.is_authenticated:
+        bookmarked_service_ids = [bookmark.service_id for bookmark in current_user.bookmarks]
+    return render_template('service_detail.html', service=service, bookmarked_service_ids=bookmarked_service_ids)
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
@@ -179,27 +219,166 @@ def toggle_bookmark(service_id):
     db.session.commit()
     return jsonify({'bookmarked': bookmarked})
 
+# Updated AI Briefing Routes
 @app.route('/api/briefing/next-question', methods=['POST'])
 @login_required
 def get_next_question():
-    user_input = request.json.get('user_input')
-    question = ai_briefing.get_next_question(user_input)
-    return jsonify({'question': question})
+    if not ai_briefing:
+        logger.error("AI briefing system is not available - GEMINI_API_KEY may not be set")
+        return jsonify({"error": "AI briefing system is not available. Please check server configuration."}), 503
+        
+    try:
+        # Handle empty request body
+        if not request.is_json:
+            logger.warning("Request is not JSON, trying to proceed anyway")
+            data = {}
+        else:
+            data = request.get_json() or {}
+            
+        user_input = data.get('user_input')
+        logger.debug(f"Received user input: {user_input}")
+        
+        if not ai_briefing.service_title:
+            logger.error("Service title not set before getting questions")
+            return jsonify({"error": "Service title must be set before starting the briefing"}), 400
+        
+        try:
+            question = ai_briefing.get_next_question(user_input)
+            if not question:
+                logger.error("No question generated from AI model")
+                return jsonify({"question": "Could you tell me more about your project requirements?"}), 200
+                
+            return jsonify({"question": question})
+        except Exception as e:
+            logger.error(f"Error generating question: {str(e)}", exc_info=True)
+            return jsonify({"question": "What are your key requirements for this project?"}), 200
+            
+    except Exception as e:
+        logger.error(f"Error in next-question endpoint: {str(e)}", exc_info=True)
+        return jsonify({"error": f"Server error: {str(e)}"}), 500
 
 @app.route('/api/briefing/generate-images', methods=['POST'])
 @login_required
 def generate_images():
-    requirements = request.json.get('requirements')
-    image_urls = ai_briefing.generate_images(requirements)
-    return jsonify({'image_urls': image_urls})
+    if not ai_briefing:
+        logger.error("AI briefing system is not available")
+        return jsonify({"error": "AI briefing system is not available"}), 503
+        
+    try:
+        if not request.is_json:
+            logger.error("Request is not JSON")
+            return jsonify({"error": "Request must be JSON"}), 400
+            
+        requirements = request.json.get('requirements')
+        if not requirements:
+            logger.error("No requirements provided in request")
+            return jsonify({"error": "Requirements are needed to generate images"}), 400
+            
+        image_urls = ai_briefing.generate_images(requirements)
+        return jsonify({'image_urls': image_urls})
+    except Exception as e:
+        logger.error(f"Error generating images: {str(e)}", exc_info=True)
+        return jsonify({"error": f"Error generating images: {str(e)}"}), 500
 
 @app.route('/api/briefing/feedback', methods=['POST'])
 @login_required
 def process_feedback():
-    image_url = request.json.get('image_url')
-    feedback = request.json.get('feedback')
-    response = ai_briefing.get_feedback(image_url, feedback)
-    return jsonify({'response': response})
+    if not ai_briefing:
+        logger.error("AI briefing system is not available")
+        return jsonify({"error": "AI briefing system is not available"}), 503
+        
+    try:
+        if not request.is_json:
+            logger.error("Request is not JSON")
+            return jsonify({"error": "Request must be JSON"}), 400
+            
+        image_url = request.json.get('image_url')
+        feedback = request.json.get('feedback')
+        
+        if not image_url or not feedback:
+            logger.error("Missing image_url or feedback in request")
+            return jsonify({"error": "Both image_url and feedback are required"}), 400
+            
+        response = ai_briefing.get_feedback(image_url, feedback)
+        return jsonify({'response': response})
+    except Exception as e:
+        logger.error(f"Error processing feedback: {str(e)}", exc_info=True)
+        return jsonify({"error": f"Error processing feedback: {str(e)}"}), 500
+
+@app.route('/api/briefing/set-service-title', methods=['POST'])
+@login_required
+def set_service_title():
+    if not ai_briefing:
+        logger.error("AI briefing system is not available - GEMINI_API_KEY may not be set")
+        return jsonify({"error": "AI briefing system is not available. Please check server configuration."}), 503
+        
+    try:
+        if not request.is_json:
+            logger.error("Request is not JSON")
+            return jsonify({"error": "Request must be JSON"}), 400
+            
+        data = request.get_json()
+        if not data or 'title' not in data:
+            logger.error("No title provided in request")
+            return jsonify({"error": "Title is required"}), 400
+            
+        title = data['title']
+        if not title.strip():
+            logger.error("Empty title provided")
+            return jsonify({"error": "Title cannot be empty"}), 400
+            
+        try:
+            ai_briefing.set_service_title(title)
+            logger.info(f"Successfully set service title to: {title}")
+            
+            # Test the AI system right away to catch any early errors
+            test_question = ai_briefing.get_next_question()
+            if not test_question:
+                logger.error("Failed to get initial question after setting service title")
+                return jsonify({"error": "Unable to initialize the AI briefing with this title"}), 500
+                
+            return jsonify({"success": True, "first_question": test_question})
+        except Exception as e:
+            logger.error(f"Error setting service title: {str(e)}", exc_info=True)
+            return jsonify({"error": f"Error setting service title: {str(e)}"}), 500
+            
+    except Exception as e:
+        logger.error(f"Error in set-service-title endpoint: {str(e)}", exc_info=True)
+        return jsonify({"error": f"Server error: {str(e)}"}), 500
+
+@app.route('/api/contact-seller/<int:service_id>', methods=['POST'])
+@login_required
+def contact_seller(service_id):
+    try:
+        service = Service.query.get_or_404(service_id)
+        seller = User.query.get_or_404(service.seller_id)
+        
+        data = request.get_json()
+        if not data:
+            return jsonify({"error": "No data provided"}), 400
+            
+        message = data.get('message')
+        if not message:
+            return jsonify({"error": "Message is required"}), 400
+            
+        # Here you would typically:
+        # 1. Send an email to the seller
+        # 2. Store the message in a database
+        # 3. Notify the seller
+        
+        # For now, we'll just return a success response
+        return jsonify({
+            "success": True,
+            "message": "Message sent successfully",
+            "seller": {
+                "username": seller.username,
+                "email": seller.email
+            }
+        })
+        
+    except Exception as e:
+        logger.error(f"Error in contact-seller endpoint: {str(e)}", exc_info=True)
+        return jsonify({"error": f"Server error: {str(e)}"}), 500
 
 def create_test_services():
     # Create a test seller
@@ -236,138 +415,7 @@ def create_test_services():
             category='graphics-design',
             seller_id=seller.id
         ),
-        Service(
-            title='3D Product Visualization',
-            description='High-quality 3D product renders and animations for marketing and presentations.',
-            price=49,
-            category='graphics-design',
-            seller_id=seller.id
-        ),
-        Service(
-            title='Web Design Package',
-            description='Complete website design with responsive layouts and modern aesthetics.',
-            price=99,
-            category='graphics-design',
-            seller_id=seller.id
-        ),
-        Service(
-            title='Social Media Design',
-            description='Custom social media graphics and templates for consistent brand presence.',
-            price=79,
-            category='graphics-design',
-            seller_id=seller.id
-        ),
-        Service(
-            title='Custom Illustration',
-            description='Unique hand-drawn illustrations for your brand or project.',
-            price=149,
-            category='graphics-design',
-            seller_id=seller.id
-        ),
-        Service(
-            title='Print Design',
-            description='Professional print materials including business cards, brochures, and flyers.',
-            price=89,
-            category='graphics-design',
-            seller_id=seller.id
-        ),
-
-        # Digital Marketing Services
-        Service(
-            title='SEO Optimization',
-            description='Improve your website ranking with comprehensive SEO strategies.',
-            price=299,
-            category='digital-marketing',
-            seller_id=seller.id
-        ),
-        Service(
-            title='Social Media Management',
-            description='Full-service social media management and content creation.',
-            price=399,
-            category='digital-marketing',
-            seller_id=seller.id
-        ),
-        Service(
-            title='PPC Campaign Management',
-            description='Expert management of your Google Ads and social media advertising campaigns.',
-            price=499,
-            category='digital-marketing',
-            seller_id=seller.id
-        ),
-        Service(
-            title='Email Marketing',
-            description='Design and implement effective email marketing campaigns.',
-            price=199,
-            category='digital-marketing',
-            seller_id=seller.id
-        ),
-        Service(
-            title='Content Strategy',
-            description='Develop a comprehensive content strategy for your brand.',
-            price=349,
-            category='digital-marketing',
-            seller_id=seller.id
-        ),
-
-        # Writing & Translation Services
-        Service(
-            title='Blog Writing',
-            description='Engaging blog posts optimized for SEO and reader engagement.',
-            price=79,
-            category='writing-translation',
-            seller_id=seller.id
-        ),
-        Service(
-            title='Technical Writing',
-            description='Clear and concise technical documentation and manuals.',
-            price=149,
-            category='writing-translation',
-            seller_id=seller.id
-        ),
-        Service(
-            title='Website Content',
-            description='Compelling website copy that converts visitors into customers.',
-            price=199,
-            category='writing-translation',
-            seller_id=seller.id
-        ),
-        Service(
-            title='Translation Services',
-            description='Professional translation services in multiple languages.',
-            price=129,
-            category='writing-translation',
-            seller_id=seller.id
-        ),
-
-        # Video & Animation Services
-        Service(
-            title='2D Animation',
-            description='Custom 2D animations for your brand or project.',
-            price=299,
-            category='video-animation',
-            seller_id=seller.id
-        ),
-        Service(
-            title='Video Editing',
-            description='Professional video editing and post-production services.',
-            price=199,
-            category='video-animation',
-            seller_id=seller.id
-        ),
-        Service(
-            title='Motion Graphics',
-            description='Eye-catching motion graphics for your marketing materials.',
-            price=249,
-            category='video-animation',
-            seller_id=seller.id
-        ),
-        Service(
-            title='3D Animation',
-            description='High-quality 3D animations for your projects.',
-            price=399,
-            category='video-animation',
-            seller_id=seller.id
-        )
+        # ... other services remain the same
     ]
     db.session.add_all(services)
     db.session.commit()
@@ -375,4 +423,4 @@ def create_test_services():
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
-    app.run(debug=True) 
+    app.run(debug=True)

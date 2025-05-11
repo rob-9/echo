@@ -1,0 +1,4 @@
+2025-05-10 22:12:18,520 - __main__ - ERROR - GEMINI_API_KEY environment variable is not set
+2025-05-10 22:12:18,540 - werkzeug - WARNING -  * Debugger is active!
+2025-05-10 22:12:18,544 - werkzeug - INFO -  * Debugger PIN: 293-769-057
+2025-05-10 22:12:19,604 - werkzeug - INFO -  * Detected change in '/Users/robert/Desktop/vsc/aws/ai_briefing.py', reloading
