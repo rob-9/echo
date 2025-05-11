@@ -3,96 +3,157 @@
 {% block title %}Services - echo{% endblock %}
 
 {% block content %}
-<div class="flex flex-col md:flex-row gap-8">
-    <!-- Filters Sidebar -->
-    <div class="w-full md:w-64 flex-shrink-0">
-        <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 mt-6">
-            <h3 class="font-semibold mb-4 text-gray-900 dark:text-gray-100">Filters</h3>
-            <form class="space-y-4" id="filterForm">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Category</label>
-                    <select name="category" class="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                        <option value="">All Categories</option>
-                        <option value="graphics-design" {% if selected_category == 'graphics-design' %}selected{% endif %}>Graphics & Design</option>
-                        <option value="digital-marketing" {% if selected_category == 'digital-marketing' %}selected{% endif %}>Digital Marketing</option>
-                        <option value="writing-translation" {% if selected_category == 'writing-translation' %}selected{% endif %}>Writing & Translation</option>
-                        <option value="video-animation" {% if selected_category == 'video-animation' %}selected{% endif %}>Video & Animation</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Price Range</label>
-                    <div class="flex items-center space-x-2">
-                        <input type="number" name="min_price" placeholder="Min" min="0" value="{{ selected_min_price or '' }}"
-                            class="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                        <span class="text-gray-500 dark:text-gray-400">-</span>
-                        <input type="number" name="max_price" placeholder="Max" min="0" value="{{ selected_max_price or '' }}"
-                            class="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex flex-col md:flex-row gap-8">
+        <!-- Filters Sidebar -->
+        <div class="w-full md:w-64 flex-shrink-0">
+            <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 mt-6">
+                <h3 class="font-semibold mb-4 text-gray-900 dark:text-gray-100">Filters</h3>
+                <form class="space-y-4" id="filterForm">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Category</label>
+                        <div class="relative" id="category-dropdown">
+                            <button type="button" id="categoryDropdownBtn" class="w-full px-3 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md text-left text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 flex justify-between items-center">
+                                <span id="categoryDropdownSelected">{% if selected_category %}{{ selected_category|replace('-', ' ')|title }}{% else %}All Categories{% endif %}</span>
+                                <i class="fas fa-chevron-down ml-2 text-gray-700 dark:text-gray-300"></i>
+                            </button>
+                            <input type="hidden" name="category" id="categoryDropdownInput" value="{{ selected_category or '' }}">
+                            <div id="categoryDropdownMenu" class="hidden absolute z-10 mt-1 w-full rounded-md shadow-lg bg-white dark:bg-gray-800 ring-1 ring-black ring-opacity-5">
+                                <div class="py-1">
+                                    <a href="#" data-value="" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700">All Categories</a>
+                                    <a href="#" data-value="2d-design" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700">2D Design</a>
+                                    <a href="#" data-value="3d-design" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700">3D Design</a>
+                                    <a href="#" data-value="ui-design" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700">UI/UX Design</a>
+                                    <a href="#" data-value="illustration" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700">Illustration</a>
+                                    <a href="#" data-value="animation" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700">Animation</a>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                </div>
-                <button type="submit"
-                    class="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-800 transition duration-300">
-                    Apply Filters
-                </button>
-            </form>
-        </div>
-    </div>
-
-    <!-- Services Grid -->
-    <div class="flex-1">
-        <div class="flex justify-between items-center mb-6 mt-6">
-            <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100">All Services</h2>
-            <select class="px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" id="sortSelect">
-                <option value="newest" {% if selected_sort == 'newest' %}selected{% endif %}>Newest</option>
-                <option value="price-low" {% if selected_sort == 'price-low' %}selected{% endif %}>Price: Low to High</option>
-                <option value="price-high" {% if selected_sort == 'price-high' %}selected{% endif %}>Price: High to Low</option>
-                <option value="rating" {% if selected_sort == 'rating' %}selected{% endif %}>Top Rated</option>
-            </select>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {% for service in services %}
-            <div class="bg-white dark:bg-gray-800 rounded-xl shadow-soft border border-gray-200 dark:border-gray-700 overflow-hidden">
-                <div class="p-6 flex flex-col h-full">
-                    <div class="flex justify-between items-start mb-2">
-                        <h3 class="text-xl font-semibold text-gray-900 dark:text-gray-100">{{ service.title }}</h3>
-                        <button class="bookmark-btn text-gray-400 hover:text-blue-500 dark:hover:text-blue-400 transition-colors duration-200" data-service-id="{{ service.id }}">
-                            <i class="{% if service.id in bookmarked_service_ids %}fas text-blue-500{% else %}far{% endif %} fa-bookmark"></i>
-                        </button>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Price Range</label>
+                        <div class="flex items-center space-x-2">
+                            <input type="number" name="min_price" placeholder="Min" min="0" value="{{ selected_min_price or '' }}"
+                                class="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-none ring-0 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 transition-all duration-150">
+                            <span class="text-gray-500 dark:text-gray-400">-</span>
+                            <input type="number" name="max_price" placeholder="Max" min="0" value="{{ selected_max_price or '' }}"
+                                class="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-none ring-0 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 transition-all duration-150">
+                        </div>
                     </div>
-                    <p class="text-gray-600 dark:text-gray-400 mb-4">{{ service.description[:100] }}...</p>
-                    <div class="flex justify-between items-center mt-auto pt-4 border-t border-gray-200 dark:border-gray-700">
-                        <span class="text-blue-500 dark:text-blue-400 font-bold">${{ "%.2f"|format(service.price) }}</span>
-                        <a href="{{ url_for('service_detail', service_id=service.id) }}" class="text-blue-500 dark:text-blue-400 hover:text-blue-600 dark:hover:text-blue-300 transition-colors duration-300">
-                            View Details
-                        </a>
+                    <button type="submit"
+                        class="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-800 transition duration-300">
+                        Apply Filters
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Services Grid -->
+        <div class="flex-1">
+            <div class="flex justify-between items-center mb-6 mt-6">
+                <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Design Services</h2>
+                <div class="relative" id="sort-dropdown">
+                    <button type="button" id="sortDropdownBtn" class="px-3 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md text-left text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 flex justify-between items-center min-w-[160px]">
+                        <span id="sortDropdownSelected">
+                            {% if selected_sort == 'price-low' %}Price: Low to High{% elif selected_sort == 'price-high' %}Price: High to Low{% elif selected_sort == 'rating' %}Top Rated{% else %}Newest{% endif %}
+                        </span>
+                        <i class="fas fa-chevron-down ml-2 text-gray-700 dark:text-gray-300"></i>
+                    </button>
+                    <input type="hidden" name="sort" id="sortDropdownInput" value="{{ selected_sort or 'newest' }}">
+                    <div id="sortDropdownMenu" class="hidden absolute z-10 mt-1 w-full rounded-md shadow-lg bg-white dark:bg-gray-800 ring-1 ring-black ring-opacity-5">
+                        <div class="py-1">
+                            <a href="#" data-value="newest" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700">Newest</a>
+                            <a href="#" data-value="price-low" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700">Price: Low to High</a>
+                            <a href="#" data-value="price-high" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700">Price: High to Low</a>
+                            <a href="#" data-value="rating" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700">Top Rated</a>
+                        </div>
                     </div>
                 </div>
             </div>
-            {% endfor %}
-        </div>
 
-        <!-- Pagination -->
-        <div class="mt-8 flex justify-center">
-            <nav class="flex items-center space-x-2">
-                <a href="#" class="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700">
-                    Previous
-                </a>
-                <a href="#" class="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-blue-600 text-white">
-                    1
-                </a>
-                <a href="#" class="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700">
-                    2
-                </a>
-                <a href="#" class="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700">
-                    3
-                </a>
-                <a href="#" class="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700">
-                    Next
-                </a>
-            </nav>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {% for service in services %}
+                <div class="service-card bg-white dark:bg-gray-800 rounded-xl shadow-soft border border-gray-200 dark:border-gray-700 overflow-hidden relative group">
+                    <a href="{{ url_for('service_detail', service_id=service.id) }}" class="block flex flex-col h-full">
+                        {% if service.image_url %}
+                        <div class="relative w-full h-36 overflow-hidden">
+                            <img src="{{ service.image_url }}" alt="{{ service.title }}" class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105">
+                            <div class="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                        </div>
+                        {% endif %}
+                        <div class="p-6 flex flex-col flex-grow">
+                            <div class="flex justify-between items-start mb-2">
+                                <h3 class="text-xl font-semibold text-gray-900 dark:text-gray-100 group-hover:text-blue-500 dark:group-hover:text-blue-400 transition-colors duration-200">{{ service.title }}</h3>
+                            </div>
+                            <p class="text-gray-600 dark:text-gray-400 mb-4">{{ service.description[:100] }}...</p>
+                            <div class="flex justify-between items-center mt-auto pt-4 border-t border-gray-200 dark:border-gray-700">
+                                <span class="text-blue-500 dark:text-blue-400 font-bold">${{ "%.2f"|format(service.price) }}</span>
+                                <span class="text-blue-500 dark:text-blue-400 group-hover:text-blue-600 dark:group-hover:text-blue-300 transition-colors duration-300">View Details</span>
+                            </div>
+                        </div>
+                    </a>
+                    <button 
+                        class="bookmark-btn absolute top-4 right-4 text-gray-400 hover:text-blue-500 dark:hover:text-blue-400 transition-colors duration-200 z-10" 
+                        data-service-id="{{ service.id }}"
+                        onclick="event.stopPropagation()"
+                    >
+                        <i class="{% if service.id in bookmarked_services %}fas text-blue-500{% else %}far{% endif %} fa-bookmark"></i>
+                    </button>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Pagination -->
+            <div class="mt-8 flex justify-center">
+                <nav class="flex items-center space-x-2">
+                    <a href="#" class="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700">
+                        Previous
+                    </a>
+                    <a href="#" class="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-blue-600 text-white">
+                        1
+                    </a>
+                    <a href="#" class="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700">
+                        2
+                    </a>
+                    <a href="#" class="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700">
+                        3
+                    </a>
+                    <a href="#" class="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700">
+                        Next
+                    </a>
+                </nav>
+            </div>
         </div>
     </div>
 </div>
+
+<style>
+    .service-card {
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        cursor: pointer;
+    }
+
+    .service-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    }
+
+    .service-card a {
+        text-decoration: none;
+        color: inherit;
+    }
+
+    .bookmark-btn {
+        cursor: pointer;
+        position: relative;
+        z-index: 20;
+    }
+
+    .dark .service-card:hover {
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.2);
+    }
+</style>
+
 {% endblock %}
 
 {% block extra_js %}
@@ -101,6 +162,8 @@
     document.querySelectorAll('.bookmark-btn').forEach(button => {
         button.addEventListener('click', async (e) => {
             e.preventDefault();
+            e.stopPropagation();
+            
             const serviceId = button.dataset.serviceId;
             const icon = button.querySelector('i');
             
@@ -112,8 +175,9 @@
                     },
                 });
                 
-                if (response.ok) {
-                    const data = await response.json();
+                const data = await response.json();
+                
+                if (data.success) {
                     if (data.bookmarked) {
                         icon.classList.remove('far');
                         icon.classList.add('fas');
@@ -130,31 +194,52 @@
         });
     });
 
-    // Filter form handling
-    const filterForm = document.getElementById('filterForm');
-    const sortSelect = document.getElementById('sortSelect');
-
-    filterForm.addEventListener('submit', (e) => {
+    // Custom Category Dropdown
+    const categoryBtn = document.getElementById('categoryDropdownBtn');
+    const categoryMenu = document.getElementById('categoryDropdownMenu');
+    const categoryInput = document.getElementById('categoryDropdownInput');
+    const categorySelected = document.getElementById('categoryDropdownSelected');
+    categoryBtn.addEventListener('click', function(e) {
         e.preventDefault();
-        const formData = new FormData(filterForm);
-        const params = new URLSearchParams(formData);
-        
-        // Preserve sort parameter if it exists
-        if (sortSelect.value) {
-            params.set('sort', sortSelect.value);
+        categoryMenu.classList.toggle('hidden');
+    });
+    document.querySelectorAll('#categoryDropdownMenu a').forEach(option => {
+        option.addEventListener('click', function(e) {
+            e.preventDefault();
+            categoryInput.value = this.dataset.value;
+            categorySelected.textContent = this.textContent;
+            categoryMenu.classList.add('hidden');
+        });
+    });
+    document.addEventListener('click', function(e) {
+        if (!categoryBtn.contains(e.target) && !categoryMenu.contains(e.target)) {
+            categoryMenu.classList.add('hidden');
         }
-        
-        window.location.href = `${window.location.pathname}?${params.toString()}`;
     });
 
-    sortSelect.addEventListener('change', () => {
-        const currentUrl = new URL(window.location.href);
-        const params = new URLSearchParams(currentUrl.search);
-        
-        // Preserve existing filter parameters
-        params.set('sort', sortSelect.value);
-        
-        window.location.href = `${window.location.pathname}?${params.toString()}`;
+    // Custom Sort Dropdown
+    const sortBtn = document.getElementById('sortDropdownBtn');
+    const sortMenu = document.getElementById('sortDropdownMenu');
+    const sortInput = document.getElementById('sortDropdownInput');
+    const sortSelected = document.getElementById('sortDropdownSelected');
+    sortBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        sortMenu.classList.toggle('hidden');
+    });
+    document.querySelectorAll('#sortDropdownMenu a').forEach(option => {
+        option.addEventListener('click', function(e) {
+            e.preventDefault();
+            sortInput.value = this.dataset.value;
+            sortSelected.textContent = this.textContent;
+            sortMenu.classList.add('hidden');
+            // Submit the form on sort change
+            document.getElementById('filterForm').submit();
+        });
+    });
+    document.addEventListener('click', function(e) {
+        if (!sortBtn.contains(e.target) && !sortMenu.contains(e.target)) {
+            sortMenu.classList.add('hidden');
+        }
     });
 </script>
-{% endblock %} 
+{% endblock %}
