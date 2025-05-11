@@ -18,6 +18,49 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/category-cards.css') }}">
+    <style>
+        /* Fix autofill background color */
+        input:-webkit-autofill,
+        input:-webkit-autofill:hover,
+        input:-webkit-autofill:focus,
+        input:-webkit-autofill:active,
+        textarea:-webkit-autofill,
+        textarea:-webkit-autofill:hover,
+        textarea:-webkit-autofill:focus,
+        textarea:-webkit-autofill:active,
+        select:-webkit-autofill,
+        select:-webkit-autofill:hover,
+        select:-webkit-autofill:focus,
+        select:-webkit-autofill:active {
+            -webkit-box-shadow: 0 0 0 30px rgb(31, 41, 55) inset !important;
+            -webkit-text-fill-color: rgb(229, 231, 235) !important;
+            transition: background-color 5000s ease-in-out 0s;
+        }
+
+        /* Dark mode styles */
+        body {
+            background-color: rgb(17, 24, 39);
+            color: rgb(229, 231, 235);
+        }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgb(31, 41, 55);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgb(75, 85, 99);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgb(107, 114, 128);
+        }
+    </style>
     {% block extra_css %}{% endblock %}
 </head>
 <body class="text-gray-900 dark:text-gray-100 bg-white dark:bg-black">
