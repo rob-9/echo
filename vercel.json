@@ -23,10 +23,5 @@
   "env": {
     "VERCEL": "1",
     "FLASK_ENV": "production"
-  },
-  "functions": {
-    "wsgi.py": {
-      "includeFiles": "templates/**"
-    }
   }
 }
