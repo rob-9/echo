@@ -438,11 +438,11 @@
                 Get exactly what you want, faster.
             </p>
             <div class="flex space-x-6 mt-8">
-                <a href="{{ url_for('services') }}" class="bg-blue-200 hover:bg-blue-300 text-black px-8 py-3 rounded-lg font-semibold transition-all duration-300 shadow-lg hover:shadow-xl">
+                <a href="{{ url_for('main.services') }}" class="bg-blue-200 hover:bg-blue-300 text-black px-8 py-3 rounded-lg font-semibold transition-all duration-300 shadow-lg hover:shadow-xl">
                     Browse Services
                 </a>
                 {% if not current_user.is_authenticated %}
-                <a href="{{ url_for('register') }}" class="bg-blue-400 hover:bg-blue-500 text-black px-8 py-3 rounded-lg font-semibold transition-all duration-300 shadow-lg hover:shadow-xl">
+                <a href="{{ url_for('auth.register') }}" class="bg-blue-400 hover:bg-blue-500 text-black px-8 py-3 rounded-lg font-semibold transition-all duration-300 shadow-lg hover:shadow-xl">
                     Get Started As Designer
                 </a>
                 {% endif %}
@@ -616,7 +616,7 @@
     <div class="max-w-7xl mx-auto px-4">
         <h2 class="text-4xl font-bold mb-12 text-center text-gray-900 dark:text-gray-100">Popular Categories</h2>
         <div class="grid grid-cols-2 md:grid-cols-4 gap-8">
-            <a href="{{ url_for('services', category='ui-design') }}" class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-soft border border-gray-200 dark:border-gray-700 hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
+            <a href="{{ url_for('main.services', category='ui-design') }}" class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-soft border border-gray-200 dark:border-gray-700 hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
                 <div class="relative">
                     <div class="text-blue-500 dark:text-blue-400 mb-4">
                         <i class="fas fa-paint-brush text-3xl"></i>
@@ -625,7 +625,7 @@
                     <p class="text-gray-600 dark:text-gray-400 mt-2">User interface and experience design</p>
                 </div>
             </a>
-            <a href="{{ url_for('services', category='brand-identity') }}" class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-soft border border-gray-200 dark:border-gray-700 hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
+            <a href="{{ url_for('main.services', category='brand-identity') }}" class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-soft border border-gray-200 dark:border-gray-700 hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
                 <div class="relative">
                     <div class="text-blue-500 dark:text-blue-400 mb-4">
                         <i class="fas fa-palette text-3xl"></i>
@@ -634,7 +634,7 @@
                     <p class="text-gray-600 dark:text-gray-400 mt-2">Logo design and brand guidelines</p>
                 </div>
             </a>
-            <a href="{{ url_for('services', category='mobile-design') }}" class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-soft border border-gray-200 dark:border-gray-700 hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
+            <a href="{{ url_for('main.services', category='mobile-design') }}" class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-soft border border-gray-200 dark:border-gray-700 hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
                 <div class="relative">
                     <div class="text-blue-500 dark:text-blue-400 mb-4">
                         <i class="fas fa-mobile-alt text-3xl"></i>
@@ -643,7 +643,7 @@
                     <p class="text-gray-600 dark:text-gray-400 mt-2">App interfaces and mobile experiences</p>
                 </div>
             </a>
-            <a href="{{ url_for('services', category='3d-design') }}" class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-soft border border-gray-200 dark:border-gray-700 hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
+            <a href="{{ url_for('main.services', category='3d-design') }}" class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-soft border border-gray-200 dark:border-gray-700 hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
                 <div class="relative">
                     <div class="text-blue-500 dark:text-blue-400 mb-4">
                         <i class="fas fa-cube text-3xl"></i>
@@ -666,7 +666,7 @@
                 <button class="bookmark-btn absolute top-4 right-4 z-10 p-2 text-gray-400 hover:text-blue-500 dark:hover:text-blue-400 transition-colors duration-200" data-service-id="{{ service.id }}">
                     <i class="{% if service.id in bookmarked_service_ids %}fas text-blue-500{% else %}far{% endif %} fa-bookmark text-xl"></i>
                 </button>
-                <a href="{{ url_for('service_detail', service_id=service.id) }}" class="block flex flex-col h-full">
+                <a href="{{ url_for('main.service_detail', service_id=service.id) }}" class="block flex flex-col h-full">
                     {% if service.image_url %}
                     <div class="relative w-full h-36 overflow-hidden">
                         <img src="/{{ service.image_url.lstrip('/') }}" alt="{{ service.title }}" class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105">

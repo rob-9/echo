@@ -79,23 +79,23 @@
             <div class="flex justify-between h-16">
                 <div class="flex">
                     <div class="flex-shrink-0 flex items-center -ml-2">
-                        <a href="{{ url_for('home') }}" class="text-2xl font-bold text-blue-600 dark:text-blue-400 flex items-center gap-2">
+                        <a href="{{ url_for('main.home') }}" class="text-2xl font-bold text-blue-600 dark:text-blue-400 flex items-center gap-2">
                             <i class="fas fa-robot text-blue-500 dark:text-blue-400"></i>
                             echo
                         </a>
                     </div>
                     <div class="hidden sm:ml-6 sm:flex sm:space-x-8">
-                        <a href="{{ url_for('home') }}" class="border-b-2 text-sm font-medium inline-flex items-center px-1 pt-1 transition-colors duration-200
-                            {% if request.endpoint == 'home' %}border-blue-500 text-blue-600 dark:text-blue-400{% else %}border-transparent text-gray-500 dark:text-gray-300 hover:border-blue-500 hover:text-blue-600 dark:hover:text-blue-400{% endif %}">
+                        <a href="{{ url_for('main.home') }}" class="border-b-2 text-sm font-medium inline-flex items-center px-1 pt-1 transition-colors duration-200
+                            {% if request.endpoint == 'main.home' %}border-blue-500 text-blue-600 dark:text-blue-400{% else %}border-transparent text-gray-500 dark:text-gray-300 hover:border-blue-500 hover:text-blue-600 dark:hover:text-blue-400{% endif %}">
                             Home
                         </a>
-                        <a href="{{ url_for('services') }}" class="border-b-2 text-sm font-medium inline-flex items-center px-1 pt-1 transition-colors duration-200
-                            {% if request.endpoint == 'services' %}border-blue-500 text-blue-600 dark:text-blue-400{% else %}border-transparent text-gray-500 dark:text-gray-300 hover:border-blue-500 hover:text-blue-600 dark:hover:text-blue-400{% endif %}">
+                        <a href="{{ url_for('main.services') }}" class="border-b-2 text-sm font-medium inline-flex items-center px-1 pt-1 transition-colors duration-200
+                            {% if request.endpoint == 'main.services' %}border-blue-500 text-blue-600 dark:text-blue-400{% else %}border-transparent text-gray-500 dark:text-gray-300 hover:border-blue-500 hover:text-blue-600 dark:hover:text-blue-400{% endif %}">
                             Services
                         </a>
                         {% if current_user.is_authenticated %}
-                        <a href="{{ url_for('dashboard') }}" class="border-b-2 text-sm font-medium inline-flex items-center px-1 pt-1 transition-colors duration-200
-                            {% if request.endpoint == 'dashboard' %}border-blue-500 text-blue-600 dark:text-blue-400{% else %}border-transparent text-gray-500 dark:text-gray-300 hover:border-blue-500 hover:text-blue-600 dark:hover:text-blue-400{% endif %}">
+                        <a href="{{ url_for('auth.dashboard') }}" class="border-b-2 text-sm font-medium inline-flex items-center px-1 pt-1 transition-colors duration-200
+                            {% if request.endpoint == 'auth.dashboard' %}border-blue-500 text-blue-600 dark:text-blue-400{% else %}border-transparent text-gray-500 dark:text-gray-300 hover:border-blue-500 hover:text-blue-600 dark:hover:text-blue-400{% endif %}">
                             Dashboard
                         </a>
                         {% endif %}
@@ -159,14 +159,14 @@
                             </div>
                             <!-- Dropdown menu -->
                             <div class="hidden origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 bg-white dark:bg-gray-800 ring-1 ring-black ring-opacity-5 focus:outline-none" role="menu" aria-orientation="vertical" aria-labelledby="user-menu-button" tabindex="-1" id="user-menu">
-                                <a href="{{ url_for('dashboard') }}" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700" role="menuitem">Dashboard</a>
+                                <a href="{{ url_for('auth.dashboard') }}" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700" role="menuitem">Dashboard</a>
                                 <a href="#" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700" role="menuitem">Settings</a>
-                                <a href="{{ url_for('logout') }}" class="block px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700" role="menuitem">Sign out</a>
+                                <a href="{{ url_for('auth.logout') }}" class="block px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700" role="menuitem">Sign out</a>
                             </div>
                         </div>
                         {% else %}
-                        <a href="{{ url_for('login') }}" class="text-gray-500 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 px-3 py-2 rounded-md text-sm font-medium border border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-black transition-all duration-200">Login</a>
-                        <a href="{{ url_for('register') }}" class="bg-blue-600 text-white hover:bg-blue-700 px-4 py-2 rounded-md text-sm font-medium ml-4">Sign Up</a>
+                        <a href="{{ url_for('auth.login') }}" class="text-gray-500 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 px-3 py-2 rounded-md text-sm font-medium border border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-black transition-all duration-200">Login</a>
+                        <a href="{{ url_for('auth.register') }}" class="bg-blue-600 text-white hover:bg-blue-700 px-4 py-2 rounded-md text-sm font-medium ml-4">Sign Up</a>
                         {% endif %}
                     </div>
                 </div>
@@ -183,10 +183,10 @@
     <footer class="bg-black text-white border-t-0 mt-0">
         <div class="max-w-7xl mx-auto py-10 px-4 text-center">
             <div class="mb-6">
-                <a href="{{ url_for('home') }}" class="text-2xl font-bold text-blue-400">echo</a>
+                <a href="{{ url_for('main.home') }}" class="text-2xl font-bold text-blue-400">echo</a>
             </div>
             <div class="flex flex-col md:flex-row justify-center items-center gap-8 mb-6">
-                <a href="{{ url_for('services') }}" class="hover:text-blue-400 transition">Services</a>
+                <a href="{{ url_for('main.services') }}" class="hover:text-blue-400 transition">Services</a>
                 <a href="#" class="hover:text-blue-400 transition">Categories</a>
                 <a href="#" class="hover:text-blue-400 transition">Support</a>
                 <a href="#" class="hover:text-blue-400 transition">Community</a>

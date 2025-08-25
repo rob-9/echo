@@ -74,7 +74,7 @@
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {% for service in services %}
                 <div class="service-card bg-white dark:bg-gray-800 rounded-xl shadow-soft border border-gray-200 dark:border-gray-700 overflow-hidden relative group">
-                    <a href="{{ url_for('service_detail', service_id=service.id) }}" class="block flex flex-col h-full">
+                    <a href="{{ url_for('main.service_detail', service_id=service.id) }}" class="block flex flex-col h-full">
                         {% if service.image_url %}
                         <div class="relative w-full h-36 overflow-hidden">
                             <img src="{{ service.image_url }}" alt="{{ service.title }}" class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105">

@@ -7,9 +7,9 @@
     <!-- Breadcrumb -->
     <nav class="mb-8">
         <ol class="flex items-center space-x-2 text-sm text-gray-400">
-            <li><a href="{{ url_for('home') }}" class="hover:text-gray-300">Home</a></li>
+            <li><a href="{{ url_for('main.home') }}" class="hover:text-gray-300">Home</a></li>
             <li>/</li>
-            <li><a href="{{ url_for('services') }}" class="hover:text-gray-300">Services</a></li>
+            <li><a href="{{ url_for('main.services') }}" class="hover:text-gray-300">Services</a></li>
             <li>/</li>
             <li class="text-gray-300">{{ service.title }}</li>
         </ol>
