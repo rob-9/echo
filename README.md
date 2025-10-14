@@ -1,101 +1,31 @@
-# echo
+# Echo - Frontend Homepage
 
-A modern, responsive AI-powered design collaboration platform built during AWS CloudHacks, leveraging AWS services for scalable, intelligent workflows.
+This branch contains only the frontend homepage for the Echo platform, isolated for deployment.
 
-## Features
+## What Echo Does
 
-- AI-powered project briefing and smart questioning
-- Interactive workflow diagram with info icons for each step
-- **AWS Bedrock integration for generative AI and prompt engineering**
-- Built and deployed with AWS best practices
-- User authentication (login/register)
-- Service listings with categories
-- Service details with reviews
-- Seller profiles
-- Responsive design
-- Modern UI with Tailwind CSS
+Echo is an AI-powered freelancing platform that transforms design projects through intelligent briefing. The platform features:
 
-## Visual Workflow Diagram
+- **AI Image Generation**: Transform ideas into visual concepts instantly with AI-powered design mockups
+- **Smart Questioning**: AI-driven questions to precisely understand design requirements  
+- **Intuitive Interface**: Seamless platform for effortless client-designer collaboration
+- **Real-time Collaboration**: Instant feedback and revisions powered by AI for faster results
 
-echo features a unique workflow diagram on the home page, visually representing the design process:
+## Workflow
 
-- Each step (Client, Echo, Prompting, Mockups, Designer, Delivery) is shown as a node with an icon and a static info icon in the top right.
-- The info icon is for visual context only and does not trigger tooltips or popups.
-- The diagram animates the flow through each step, highlighting nodes in sequence.
-- **The Prompting and Mockups steps are powered by AWS Bedrock for advanced AI generation.**
+1. **Client** submits design requirements
+2. **Echo Platform** processes the request using AI
+3. **AI Prompting** generates detailed design briefs
+4. **Mockup Generation** creates visual concepts
+5. **Designer** refines and completes the work
+6. **Delivery** of final design to client
 
-## AWS Integration
+## Deployment
 
-echo is designed to take advantage of AWS cloud services:
+This is a standalone HTML file that can be deployed to any static hosting service like:
+- GitHub Pages
+- Netlify  
+- Vercel
+- AWS S3 + CloudFront
 
-- **AWS Bedrock**: Used for generative AI, prompt engineering, and automated design brief creation.
-- **Deployed and tested on AWS infrastructure** for scalability and reliability.
-- Built as part of the AWS CloudHacks event to showcase cloud-native, AI-driven workflows.
-
-## Setup
-
-1. Clone the repository:
-```bash
-git clone <repository-url>
-cd cloudhacks
-```
-
-2. Create a virtual environment and activate it:
-```bash
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-```
-
-3. Install dependencies:
-```bash
-pip install -r requirements.txt
-```
-
-4. Initialize the database:
-```bash
-flask db init
-flask db migrate
-flask db upgrade
-```
-
-5. Run the development server:
-```bash
-python app.py
-```
-
-The application will be available at `http://localhost:5000`
-
-## Technologies Used
-
-- Flask - Web framework
-- SQLAlchemy - Database ORM
-- Tailwind CSS - Styling
-- Font Awesome - Icons
-- SQLite - Database
-- **AWS Bedrock - Generative AI and prompt engineering**
-- **AWS Cloud infrastructure**
-
-## Project Structure
-
-```
-echo/
-├── app.py              # Main application file
-├── requirements.txt    # Python dependencies
-├── static/            # Static files (CSS, images)
-│   └── css/
-│       └── style.css  # Custom CSS
-└── templates/         # HTML templates
-    ├── base.html      # Base template
-    ├── home.html      # Home page (with workflow diagram)
-    ├── login.html     # Login page
-    ├── register.html  # Registration page
-    ├── services.html  # Services listing
-    └── service_detail.html  # Service details
-```
-
-## Contributing
-
-1. Fork the repository
-2. Create a new branch
-3. Make your changes
-4. Submit a pull request
+Simply serve the `index.html` file.
