@@ -265,13 +265,13 @@
 
         /* Feature and Niche card hover animations */
         .feature-card, .niche-card {
-            transition: all 0.3s ease;
+            transition: all 0.2s ease;
             transform-style: preserve-3d;
             perspective: 1000px;
+            position: relative;
         }
 
         .feature-card:hover, .niche-card:hover {
-            transform: rotateX(5deg) rotateY(5deg) translateZ(10px);
             border-color: #3b82f6 !important;
             box-shadow: 0 20px 40px -12px rgba(0, 0, 0, 0.25);
         }
@@ -279,6 +279,28 @@
         .dark .feature-card:hover, .dark .niche-card:hover {
             border-color: #60a5fa !important;
             box-shadow: 0 20px 40px -12px rgba(0, 0, 0, 0.4);
+        }
+
+        /* Dynamic outline effects */
+        .feature-card::before, .niche-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            border-radius: 0.75rem;
+            padding: 2px;
+            background: linear-gradient(45deg, transparent, #3b82f6, transparent);
+            mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            mask-composite: exclude;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+            pointer-events: none;
+        }
+
+        .dark .feature-card::before, .dark .niche-card::before {
+            background: linear-gradient(45deg, transparent, #60a5fa, transparent);
         }
     </style>
 </head>
@@ -669,6 +691,58 @@
 
             // Start animation after 2 seconds
             setTimeout(animateSequence, 2000);
+        });
+
+        // Card tilt animation following cursor
+        document.addEventListener('DOMContentLoaded', function() {
+            const cards = document.querySelectorAll('.feature-card, .niche-card');
+            
+            cards.forEach(card => {
+                card.addEventListener('mousemove', (e) => {
+                    const rect = card.getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const y = e.clientY - rect.top;
+                    
+                    const centerX = rect.width / 2;
+                    const centerY = rect.height / 2;
+                    
+                    const rotateX = ((y - centerY) / centerY) * -15;
+                    const rotateY = ((x - centerX) / centerX) * 15;
+                    
+                    card.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateZ(10px)`;
+                    
+                    // Enhanced outline based on tilt direction
+                    const intensity = Math.abs(rotateX) + Math.abs(rotateY);
+                    const normalizedIntensity = Math.min(intensity / 20, 1);
+                    
+                    // Calculate gradient direction based on cursor position
+                    const angle = Math.atan2(y - centerY, x - centerX) * (180 / Math.PI);
+                    
+                    const beforeElement = card.querySelector('::before') || card;
+                    beforeElement.style.setProperty('--gradient-angle', `${angle + 45}deg`);
+                    
+                    // Show enhanced outline
+                    card.style.setProperty('--outline-opacity', normalizedIntensity * 0.8);
+                    
+                    if (card.classList.contains('dark') || document.documentElement.classList.contains('dark')) {
+                        card.style.background = `linear-gradient(${angle + 45}deg, 
+                            rgba(96, 165, 250, ${normalizedIntensity * 0.1}), 
+                            transparent, 
+                            rgba(96, 165, 250, ${normalizedIntensity * 0.1}))`;
+                    } else {
+                        card.style.background = `linear-gradient(${angle + 45}deg, 
+                            rgba(59, 130, 246, ${normalizedIntensity * 0.1}), 
+                            transparent, 
+                            rgba(59, 130, 246, ${normalizedIntensity * 0.1}))`;
+                    }
+                });
+                
+                card.addEventListener('mouseleave', () => {
+                    card.style.transform = '';
+                    card.style.background = '';
+                    card.style.setProperty('--outline-opacity', '0');
+                });
+            });
         });
     </script>
 </body>
