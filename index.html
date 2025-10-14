@@ -262,6 +262,24 @@
             background-color: rgba(255, 255, 255, 0.3);
             transform: scale(1.1);
         }
+
+        /* Feature and Niche card hover animations */
+        .feature-card, .niche-card {
+            transition: all 0.3s ease;
+            transform-style: preserve-3d;
+            perspective: 1000px;
+        }
+
+        .feature-card:hover, .niche-card:hover {
+            transform: rotateX(5deg) rotateY(5deg) translateZ(10px);
+            border-color: #3b82f6 !important;
+            box-shadow: 0 20px 40px -12px rgba(0, 0, 0, 0.25);
+        }
+
+        .dark .feature-card:hover, .dark .niche-card:hover {
+            border-color: #60a5fa !important;
+            box-shadow: 0 20px 40px -12px rgba(0, 0, 0, 0.4);
+        }
     </style>
 </head>
 <body class="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 min-h-screen">
@@ -490,10 +508,10 @@
         <!-- Powerful Features Section -->
         <section class="mb-28 mt-24 bg-black text-white py-20" id="powerful-features">
             <div class="max-w-7xl mx-auto px-4">
-                <h2 class="text-4xl font-bold mb-12 text-center text-white">Powerful Features</h2>
+                <h2 class="text-4xl font-bold mb-12 text-center text-white">Features</h2>
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
                     <!-- AI Image Generation -->
-                    <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-soft border border-gray-200 dark:border-gray-700">
+                    <div class="feature-card bg-white dark:bg-gray-800 p-6 rounded-xl shadow-soft border border-gray-200 dark:border-gray-700">
                         <div class="text-blue-500 dark:text-blue-400 mb-4">
                             <i class="fas fa-image text-3xl"></i>
                         </div>
@@ -502,7 +520,7 @@
                     </div>
 
                     <!-- Smart Questioning -->
-                    <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-soft border border-gray-200 dark:border-gray-700">
+                    <div class="feature-card bg-white dark:bg-gray-800 p-6 rounded-xl shadow-soft border border-gray-200 dark:border-gray-700">
                         <div class="text-blue-500 dark:text-blue-400 mb-4">
                             <i class="fas fa-comments text-3xl"></i>
                         </div>
@@ -511,7 +529,7 @@
                     </div>
 
                     <!-- Intuitive Interface -->
-                    <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-soft border border-gray-200 dark:border-gray-700">
+                    <div class="feature-card bg-white dark:bg-gray-800 p-6 rounded-xl shadow-soft border border-gray-200 dark:border-gray-700">
                         <div class="text-blue-500 dark:text-blue-400 mb-4">
                             <i class="fas fa-magic text-3xl"></i>
                         </div>
@@ -520,7 +538,7 @@
                     </div>
 
                     <!-- Real-time Collaboration -->
-                    <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-soft border border-gray-200 dark:border-gray-700">
+                    <div class="feature-card bg-white dark:bg-gray-800 p-6 rounded-xl shadow-soft border border-gray-200 dark:border-gray-700">
                         <div class="text-blue-500 dark:text-blue-400 mb-4">
                             <i class="fas fa-sync-alt text-3xl"></i>
                         </div>
@@ -534,9 +552,9 @@
         <!-- Categories Section -->
         <section class="mb-24 mt-24">
             <div class="max-w-7xl mx-auto px-4">
-                <h2 class="text-4xl font-bold mb-12 text-center text-gray-900 dark:text-gray-100">Popular Categories</h2>
+                <h2 class="text-4xl font-bold mb-12 text-center text-gray-900 dark:text-gray-100">Niches</h2>
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-8">
-                    <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-soft border border-gray-200 dark:border-gray-700 hover:shadow-lg transition-all duration-300 hover:-translate-y-1 cursor-pointer">
+                    <div class="niche-card bg-white dark:bg-gray-800 p-6 rounded-xl shadow-soft border border-gray-200 dark:border-gray-700 cursor-pointer">
                         <div class="relative">
                             <div class="text-blue-500 dark:text-blue-400 mb-4">
                                 <i class="fas fa-paint-brush text-3xl"></i>
@@ -545,7 +563,7 @@
                             <p class="text-gray-600 dark:text-gray-400 mt-2">User interface and experience design</p>
                         </div>
                     </div>
-                    <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-soft border border-gray-200 dark:border-gray-700 hover:shadow-lg transition-all duration-300 hover:-translate-y-1 cursor-pointer">
+                    <div class="niche-card bg-white dark:bg-gray-800 p-6 rounded-xl shadow-soft border border-gray-200 dark:border-gray-700 cursor-pointer">
                         <div class="relative">
                             <div class="text-blue-500 dark:text-blue-400 mb-4">
                                 <i class="fas fa-palette text-3xl"></i>
@@ -554,7 +572,7 @@
                             <p class="text-gray-600 dark:text-gray-400 mt-2">Logo design and brand guidelines</p>
                         </div>
                     </div>
-                    <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-soft border border-gray-200 dark:border-gray-700 hover:shadow-lg transition-all duration-300 hover:-translate-y-1 cursor-pointer">
+                    <div class="niche-card bg-white dark:bg-gray-800 p-6 rounded-xl shadow-soft border border-gray-200 dark:border-gray-700 cursor-pointer">
                         <div class="relative">
                             <div class="text-blue-500 dark:text-blue-400 mb-4">
                                 <i class="fas fa-mobile-alt text-3xl"></i>
@@ -563,7 +581,7 @@
                             <p class="text-gray-600 dark:text-gray-400 mt-2">App interfaces and mobile experiences</p>
                         </div>
                     </div>
-                    <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-soft border border-gray-200 dark:border-gray-700 hover:shadow-lg transition-all duration-300 hover:-translate-y-1 cursor-pointer">
+                    <div class="niche-card bg-white dark:bg-gray-800 p-6 rounded-xl shadow-soft border border-gray-200 dark:border-gray-700 cursor-pointer">
                         <div class="relative">
                             <div class="text-blue-500 dark:text-blue-400 mb-4">
                                 <i class="fas fa-cube text-3xl"></i>
