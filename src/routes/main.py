@@ -1,16 +1,32 @@
-from flask import Blueprint, render_template, request, send_from_directory
+from flask import Blueprint, render_template, request, send_from_directory, jsonify
 from flask_login import current_user
 from src.models import Service, Bookmark
+import os
 
 main_bp = Blueprint('main', __name__)
 
 
 @main_bp.route('/')
 def home():
-    services = Service.query.order_by(Service.created_at.desc()).limit(8).all()
+    from src.utils.data_utils import create_test_services
+    
+    try:
+        # Ensure we have test data
+        if Service.query.count() == 0:
+            create_test_services()
+        
+        services = Service.query.order_by(Service.created_at.desc()).limit(8).all()
+    except Exception as e:
+        print(f"Error loading services: {e}")
+        services = []
+        
     bookmarked_service_ids = []
     if current_user.is_authenticated:
-        bookmarked_service_ids = [bookmark.service_id for bookmark in current_user.bookmarks]
+        try:
+            bookmarked_service_ids = [bookmark.service_id for bookmark in current_user.bookmarks]
+        except Exception as e:
+            print(f"Error loading bookmarks: {e}")
+            
     return render_template('home.html', services=services, bookmarked_service_ids=bookmarked_service_ids)
 
 
@@ -18,8 +34,13 @@ def home():
 def services():
     from src.utils.data_utils import create_test_services
     
-    if Service.query.count() == 0:
-        create_test_services()
+    # Always create test services in serverless environment (in-memory DB)
+    try:
+        if Service.query.count() == 0:
+            create_test_services()
+    except Exception as e:
+        # Log error but don't crash the app
+        print(f"Error creating test services: {e}")
     
     # Get filter parameters
     category = request.args.get('category')
@@ -75,3 +96,13 @@ def service_detail(service_id):
 @main_bp.route('/generated_images/<path:filename>')
 def generated_image(filename):
     return send_from_directory('generated_images', filename)
+
+
+@main_bp.route('/health')
+def health():
+    """Health check endpoint for Vercel"""
+    return jsonify({
+        'status': 'healthy',
+        'environment': 'vercel' if os.environ.get('VERCEL') else 'local',
+        'database': 'in-memory' if os.environ.get('VERCEL') else 'file'
+    })

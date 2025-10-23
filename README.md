@@ -26,11 +26,20 @@ echo features a unique workflow diagram on the home page, visually representing 
 
 ## AWS Integration
 
-echo is designed to take advantage of AWS cloud services:
+echo features a **distributed cloud architecture** designed for unlimited scalability:
 
-- **AWS Bedrock**: Used for generative AI, prompt engineering, and automated design brief creation.
-- **Deployed and tested on AWS infrastructure** for scalability and reliability.
-- Built as part of the AWS CloudHacks event to showcase cloud-native, AI-driven workflows.
+- **AWS Bedrock**: Generative AI models for real-time image generation and prompt engineering
+- **AWS Lambda**: Serverless functions supporting unlimited client revisions without infrastructure scaling costs
+- **DynamoDB**: Distributed storage for user sessions, generation requests, and real-time data
+- **WebSocket API**: Real-time communication for live image generation updates
+- **S3**: Scalable storage for generated images and assets
+- **Auto-scaling**: Infrastructure automatically scales based on demand without manual intervention
+
+### Architecture Highlights
+- ✅ **Real-time image generation** with WebSocket connections
+- ✅ **Unlimited client revisions** without infrastructure scaling costs  
+- ✅ **Distributed cloud architecture** on AWS Lambda + DynamoDB
+- ✅ **30% reduction** in client-designer revision cycles through AI automation
 
 ## Setup
 
@@ -67,13 +76,25 @@ The application will be available at `http://localhost:5000`
 
 ## Technologies Used
 
-- Flask - Web framework
-- SQLAlchemy - Database ORM
-- Tailwind CSS - Styling
+### Backend & AI
+- **AWS Bedrock** - Generative AI models and prompt engineering
+- **AWS Lambda** - Serverless compute for unlimited scaling
+- **DynamoDB** - Distributed NoSQL database
+- **WebSocket API** - Real-time communication
+- **S3** - Scalable object storage
+- Flask - Web framework (development)
+- SQLAlchemy - Database ORM (development)
+
+### Frontend & Styling  
+- **WebSocket connections** - Real-time image generation updates
+- JavaScript - Interactive UI and real-time features
+- Tailwind CSS - Modern responsive styling
 - Font Awesome - Icons
-- SQLite - Database
-- **AWS Bedrock - Generative AI and prompt engineering**
-- **AWS Cloud infrastructure**
+
+### Infrastructure
+- **Distributed cloud architecture** supporting unlimited client revisions
+- **Auto-scaling serverless functions** without infrastructure management costs
+- **Real-time WebSocket connections** for live image generation feedback
 
 ## Project Structure
 

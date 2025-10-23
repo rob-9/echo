@@ -2,8 +2,14 @@ import os
 from pathlib import Path
 
 class Config:
-    SECRET_KEY = os.environ.get('SECRET_KEY') or 'dev-key-change-in-production'
-    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or 'sqlite:///echo.db'
+    SECRET_KEY = os.environ.get('SECRET_KEY') or 'dev-key-change-in-production-please'
+    
+    # Use in-memory SQLite for serverless to avoid file system issues
+    if os.environ.get('VERCEL'):
+        SQLALCHEMY_DATABASE_URI = 'sqlite:///:memory:'
+    else:
+        SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or 'sqlite:///echo.db'
+    
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     UPLOAD_FOLDER = '/tmp/uploads' if os.environ.get('VERCEL') else 'static/uploads'
     

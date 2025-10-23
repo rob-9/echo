@@ -6,9 +6,11 @@ import logging
 from flask import Flask
 from flask_login import LoginManager
 from flask_migrate import Migrate
+from flask_socketio import SocketIO
 from config.config import config
 from src.models import db, User
 from src.routes import main_bp, auth_bp, api_bp
+from src.routes.websocket_routes import register_websocket_handlers
 
 # Configure logging
 logging.basicConfig(
@@ -34,6 +36,9 @@ def create_app(config_name=None):
     db.init_app(app)
     migrate = Migrate(app, db)
     
+    # Initialize SocketIO for real-time communication
+    socketio = SocketIO(app, cors_allowed_origins="*", async_mode='eventlet')
+    
     # Initialize Flask-Login
     login_manager = LoginManager()
     login_manager.init_app(app)
@@ -48,15 +53,18 @@ def create_app(config_name=None):
     app.register_blueprint(auth_bp)
     app.register_blueprint(api_bp)
     
+    # Register WebSocket handlers
+    register_websocket_handlers(socketio)
+    
     # Initialize app configuration
     config[config_name].init_app(app)
     
-    return app
+    return app, socketio
 
 if __name__ == '__main__':
-    app = create_app()
+    app, socketio = create_app()
     
     with app.app_context():
         db.create_all()
     
-    app.run(debug=True)
+    socketio.run(app, debug=True, host='0.0.0.0', port=5000)
